@@ -8,28 +8,31 @@ class UserModel extends Model
 {
     protected $table = 'users';
     protected $primaryKey = 'id';
-
-    protected $allowedFields = ['uuid','email', 'password','role','status','name','phone', 'created_at', 'updated_at', 'deleted_at'];
-
-    public function getRecords($start, $length, $searchValue = '')
+    protected $allowedFields = ['username', 'password', 'fullname', 'role'];
+    
+    public function login($username, $password)
     {
-        $builder = $this->builder();
-        $builder->select('*');
-
-        if (!empty($searchValue)) {
-            $builder->groupStart()
-                ->like('email', $searchValue)
-                ->orLike('name', $searchValue)
-                ->groupEnd();
-        }
-
-        // Clone builder for filtered count before applying limit
-        $filteredBuilder = clone $builder;
-        $filteredRecords = $filteredBuilder->countAllResults();
-
-        $builder->limit($length, $start);
-        $data = $builder->get()->getResultArray();
-
-        return ['data' => $data, 'filtered' => $filteredRecords];
+        return $this->where('username', $username)
+                    ->where('password', md5($password))
+                    ->first();
+    }
+    
+    public function getAllUsers()
+    {
+        return $this->findAll();
+    }
+    
+    public function createAdmin($data)
+    {
+        $data['password'] = md5($data['password']);
+        $data['role'] = 'admin';
+        return $this->insert($data);
+    }
+    
+    public function createStaff($data)
+    {
+        $data['password'] = md5($data['password']);
+        $data['role'] = 'staff';
+        return $this->insert($data);
     }
 }

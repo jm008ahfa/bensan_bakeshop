@@ -1,76 +1,76 @@
-<?= $this->extend('theme/template') ?>
-
-<?= $this->section('content') ?>
- <div class="content-wrapper">
-    <div class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1 class="m-0">Dashboard</h1>
-          </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Dashboard v1</li>
-            </ol>
-          </div>
-        </div>
-      </div>
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-title">Total Products</div>
+        <div class="stat-value"><?= $total_products ?? 0 ?></div>
     </div>
-<section class="content">
-  <div class="container-fluid">
-    <div class="row">
-      <!-- Small boxes (Stat box) -->
-      <div class="col-lg-3 col-6">
-        <div class="small-box bg-info">
-          <div class="inner">
-            <h3>150</h3>
-            <p>New Orders</p>
-          </div>
-          <div class="icon">
-            <i class="ion ion-bag"></i>
-          </div>
-          <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-        </div>
-      </div>
-      <div class="col-lg-3 col-6">
-        <div class="small-box bg-success">
-          <div class="inner">
-            <h3>53<sup style="font-size: 20px">%</sup></h3>
-            <p>Bounce Rate</p>
-          </div>
-          <div class="icon">
-            <i class="ion ion-stats-bars"></i>
-          </div>
-          <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-        </div>
-      </div>
-      <div class="col-lg-3 col-6">
-        <div class="small-box bg-warning">
-          <div class="inner">
-            <h3>44</h3>
-            <p>User Registrations</p>
-          </div>
-          <div class="icon">
-            <i class="ion ion-person-add"></i>
-          </div>
-          <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-        </div>
-      </div>
-      <div class="col-lg-3 col-6">
-        <div class="small-box bg-danger">
-          <div class="inner">
-            <h3>65</h3>
-            <p>Unique Visitors</p>
-          </div>
-          <div class="icon">
-            <i class="ion ion-pie-graph"></i>
-          </div>
-          <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-        </div>
-      </div>
+    <div class="stat-card">
+        <div class="stat-title">Total Stock</div>
+        <div class="stat-value"><?= $total_stock ?? 0 ?></div>
     </div>
-  </div>
-</section>
+    <div class="stat-card">
+        <div class="stat-title">Total Orders</div>
+        <div class="stat-value"><?= $total_orders ?? 0 ?></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-title">Low Stock</div>
+        <div class="stat-value"><?= $low_stock_count ?? 0 ?></div>
+    </div>
 </div>
-<?= $this->endSection() ?>
+
+<?php if(($low_stock_count ?? 0) > 0): ?>
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle"></i> 
+    <strong>Low Stock Alert:</strong> <?= $low_stock_count ?> product(s) need reordering.
+</div>
+<?php endif; ?>
+
+<!-- Recent Orders -->
+<div class="card">
+    <div class="card-header">
+        <h4>Recent Transactions</h4>
+        <a href="<?= base_url('/orders') ?>" class="btn btn-primary btn-sm">View All</a>
+    </div>
+    <div class="card-body">
+        <?php if(isset($recent_orders) && !empty($recent_orders)): ?>
+            <table class="table">
+                <thead>
+                    <tr><th>Order #</th><th>Customer</th><th>Total</th><th>Date</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach(array_slice($recent_orders, 0, 5) as $order): ?>
+                    <tr>
+                        <td><?= $order['order_number'] ?></td>
+                        <td><?= $order['customer_name'] ?></td>
+                        <td class="text-success">₱<?= number_format($order['total'], 2) ?></td>
+                        <td><?= date('M d, Y', strtotime($order['order_date'])) ?></td>
+                        <td><span class="badge badge-success">Completed</span></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p class="text-muted" style="text-align: center; padding: 40px;">No transactions yet.</p>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="stats-grid">
+    <a href="<?= base_url('/pos') ?>" class="stat-card" style="text-decoration: none;">
+        <div class="stat-title"><i class="fas fa-cash-register"></i> Point of Sale</div>
+        <div class="stat-value" style="font-size: 18px;">Process new sale</div>
+    </a>
+    <a href="<?= base_url('/product/create') ?>" class="stat-card" style="text-decoration: none;">
+        <div class="stat-title"><i class="fas fa-plus"></i> Add Product</div>
+        <div class="stat-value" style="font-size: 18px;">Add new product</div>
+    </a>
+    <a href="<?= base_url('/order-confirmation/pending') ?>" class="stat-card" style="text-decoration: none;">
+        <div class="stat-title"><i class="fas fa-clock"></i> Pending Orders</div>
+        <div class="stat-value" style="font-size: 18px;">Confirm online orders</div>
+    </a>
+    <a href="<?= base_url('/customer') ?>" class="stat-card" style="text-decoration: none;">
+        <div class="stat-title"><i class="fas fa-store"></i> Customer Store</div>
+        <div class="stat-value" style="font-size: 18px;">View customer page</div>
+    </a>
+</div>

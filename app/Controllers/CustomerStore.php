@@ -1,0 +1,239 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Models\ProductModel;
+use App\Models\CategoryModel;
+use App\Models\OrderModel;
+
+class CustomerStore extends BaseController
+{
+    private function checkLogin()
+    {
+        if (!session()->get('customer_logged_in')) {
+            return redirect()->to('/customer/login');
+        }
+        return null;
+    }
+    
+    public function index()
+    {
+        $redirect = $this->checkLogin();
+        if ($redirect) return $redirect;
+        
+        $productModel = new ProductModel();
+        $categoryModel = new CategoryModel();
+        
+        $products = $productModel->findAll();
+        foreach($products as &$product) {
+            if(!empty($product['image']) && file_exists('uploads/products/' . $product['image'])) {
+                $product['image_url'] = base_url('uploads/products/' . $product['image']);
+            } else {
+                $product['image_url'] = base_url('assets/images/default-product.png');
+            }
+        }
+        
+        $categories = $categoryModel->findAll();
+        
+        $data = [
+            'products' => $products,
+            'categories' => $categories
+        ];
+        
+        return view('customer/store_template', [
+            'title' => 'Store',
+            'content' => view('customer/index', $data)
+        ]);
+    }
+    
+    public function products()
+    {
+        $redirect = $this->checkLogin();
+        if ($redirect) return $redirect;
+        
+        $productModel = new ProductModel();
+        $categoryModel = new CategoryModel();
+        
+        $products = $productModel->findAll();
+        foreach($products as &$product) {
+            if(!empty($product['image']) && file_exists('uploads/products/' . $product['image'])) {
+                $product['image_url'] = base_url('uploads/products/' . $product['image']);
+            } else {
+                $product['image_url'] = base_url('assets/images/default-product.png');
+            }
+        }
+        
+        $data = [
+            'products' => $products,
+            'categories' => $categoryModel->findAll()
+        ];
+        
+        return view('customer/store_template', [
+            'title' => 'All Products',
+            'content' => view('customer/products', $data)
+        ]);
+    }
+    
+    public function productDetail($id)
+    {
+        $redirect = $this->checkLogin();
+        if ($redirect) return $redirect;
+        
+        $productModel = new ProductModel();
+        $product = $productModel->find($id);
+        
+        if(!$product) {
+            return redirect()->to('/customer/store');
+        }
+        
+        if(!empty($product['image']) && file_exists('uploads/products/' . $product['image'])) {
+            $product['image_url'] = base_url('uploads/products/' . $product['image']);
+        } else {
+            $product['image_url'] = base_url('assets/images/default-product.png');
+        }
+        
+        $related = [];
+        if($product['category_id']) {
+            $related = $productModel->where('category_id', $product['category_id'])
+                                    ->where('id !=', $id)
+                                    ->findAll(4);
+            foreach($related as &$r) {
+                if(!empty($r['image']) && file_exists('uploads/products/' . $r['image'])) {
+                    $r['image_url'] = base_url('uploads/products/' . $r['image']);
+                } else {
+                    $r['image_url'] = base_url('assets/images/default-product.png');
+                }
+            }
+        }
+        
+        return view('customer/store_template', [
+            'title' => $product['name'],
+            'content' => view('customer/product_detail', ['product' => $product, 'related' => $related])
+        ]);
+    }
+    
+    public function trackOrder()
+    {
+        $redirect = $this->checkLogin();
+        if ($redirect) return $redirect;
+        
+        $db = \Config\Database::connect();
+        
+        $orders = $db->table('orders')
+                     ->where('customer_email', session()->get('customer_email'))
+                     ->orderBy('order_date', 'DESC')
+                     ->get()
+                     ->getResultArray();
+        
+        return view('customer/store_template', [
+            'title' => 'Track Orders',
+            'content' => view('customer/track_order', ['orders' => $orders])
+        ]);
+    }
+    
+    public function viewOrder($order_number)
+    {
+        $redirect = $this->checkLogin();
+        if ($redirect) return $redirect;
+        
+        $db = \Config\Database::connect();
+        
+        $order = $db->table('orders')
+                    ->where('order_number', $order_number)
+                    ->get()
+                    ->getRowArray();
+        
+        if (!$order || $order['customer_email'] != session()->get('customer_email')) {
+            return redirect()->to('/customer/track-order');
+        }
+        
+        $items = $db->table('order_items')
+                    ->select('order_items.*, products.name as product_name')
+                    ->join('products', 'products.id = order_items.product_id')
+                    ->where('order_items.order_id', $order['id'])
+                    ->get()
+                    ->getResultArray();
+        
+        $order['items'] = $items;
+        
+        return view('customer/store_template', [
+            'title' => 'Order Details',
+            'content' => view('customer/order_detail', ['order' => $order])
+        ]);
+    }
+    
+    public function placeOrder()
+    {
+        $cart = json_decode($this->request->getPost('cart'), true);
+        $customer_name = $this->request->getPost('customer_name');
+        $customer_email = $this->request->getPost('customer_email');
+        $customer_phone = $this->request->getPost('customer_phone');
+        $delivery_address = $this->request->getPost('delivery_address');
+        
+        if (empty($cart)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Cart is empty']);
+        }
+        
+        $productModel = new ProductModel();
+        $orderModel = new OrderModel();
+        $db = \Config\Database::connect();
+        
+        $total_amount = 0;
+        
+        foreach($cart as $item) {
+            $product = $productModel->find($item['id']);
+            if (!$product) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Product not found']);
+            }
+            if ($product['stock'] < $item['quantity']) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Insufficient stock for ' . $product['name']]);
+            }
+            $total_amount += $product['price'] * $item['quantity'];
+        }
+        
+        $order_number = $orderModel->generateOrderNumber();
+        
+        $db->transStart();
+        
+        $orderData = [
+            'order_number' => $order_number,
+            'customer_name' => $customer_name,
+            'customer_email' => $customer_email,
+            'customer_phone' => $customer_phone,
+            'delivery_address' => $delivery_address,
+            'order_type' => 'online',
+            'total' => $total_amount,
+            'status' => 'pending'
+        ];
+        
+        $orderModel->insert($orderData);
+        $order_id = $orderModel->getInsertID();
+        
+        foreach($cart as $item) {
+            $product = $productModel->find($item['id']);
+            
+            $db->table('order_items')->insert([
+                'order_id' => $order_id,
+                'product_id' => $item['id'],
+                'quantity' => $item['quantity'],
+                'price' => $product['price']
+            ]);
+            
+            $new_stock = $product['stock'] - $item['quantity'];
+            $productModel->update($item['id'], ['stock' => $new_stock]);
+        }
+        
+        $db->transComplete();
+        
+        if ($db->transStatus() === false) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Transaction failed']);
+        }
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Order placed successfully!',
+            'order_number' => $order_number,
+            'total' => $total_amount
+        ]);
+    }
+}
