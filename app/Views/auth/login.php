@@ -25,7 +25,6 @@
             overflow-x: hidden;
         }
 
-        /* Animated Background */
         body::before {
             content: '';
             position: absolute;
@@ -40,7 +39,6 @@
             pointer-events: none;
         }
 
-        /* Floating Bakery Icons */
         .floating-icon {
             position: absolute;
             font-size: 60px;
@@ -55,12 +53,12 @@
             50% { transform: translateY(-30px) rotate(10deg); }
         }
 
-        .icon-1 { top: 10%; left: 5%; animation-delay: 0s; }
-        .icon-2 { top: 80%; left: 8%; animation-delay: 1s; font-size: 80px; }
-        .icon-3 { top: 15%; right: 8%; animation-delay: 2s; }
-        .icon-4 { bottom: 12%; right: 10%; animation-delay: 1.5s; font-size: 70px; }
-        .icon-5 { top: 50%; left: 92%; animation-delay: 0.5s; }
-        .icon-6 { bottom: 30%; left: 12%; animation-delay: 2.5s; font-size: 55px; }
+        .icon-1 { top: 10%; left: 5%; animation-delay: 0s; font-size: 70px; }
+        .icon-2 { top: 80%; left: 8%; animation-delay: 1s; font-size: 90px; }
+        .icon-3 { top: 15%; right: 8%; animation-delay: 2s; font-size: 55px; }
+        .icon-4 { bottom: 12%; right: 10%; animation-delay: 1.5s; font-size: 80px; }
+        .icon-5 { top: 45%; left: 92%; animation-delay: 0.5s; font-size: 50px; }
+        .icon-6 { bottom: 35%; left: 12%; animation-delay: 2.5s; font-size: 65px; }
 
         .login-container {
             max-width: 440px;
@@ -72,6 +70,7 @@
             animation: fadeInUp 0.6s ease;
             position: relative;
             z-index: 10;
+            backdrop-filter: blur(2px);
         }
 
         @keyframes fadeInUp {
@@ -79,7 +78,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Decorative Corners */
         .login-container::before {
             content: '';
             position: absolute;
@@ -122,6 +120,10 @@
             margin-bottom: 20px;
             box-shadow: 0 15px 30px rgba(255,107,53,0.3);
             transition: transform 0.3s;
+        }
+
+        .logo-icon:hover {
+            transform: scale(1.05);
         }
 
         .logo-icon i {
@@ -202,6 +204,7 @@
             border-radius: 16px;
             font-size: 1rem;
             font-weight: 700;
+            font-family: 'Inter', sans-serif;
             cursor: pointer;
             transition: all 0.3s;
             margin-top: 10px;
@@ -260,6 +263,13 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
         .alert-danger {
@@ -292,7 +302,6 @@
 </head>
 <body>
 
-<!-- Decorative Floating Icons -->
 <i class="fas fa-bread-slice floating-icon icon-1"></i>
 <i class="fas fa-cake floating-icon icon-2"></i>
 <i class="fas fa-cookie-bite floating-icon icon-3"></i>

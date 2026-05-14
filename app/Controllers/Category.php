@@ -9,7 +9,20 @@ class Category extends BaseController
     public function index()
     {
         $model = new CategoryModel();
-        $data['categories'] = $model->getCategoriesWithProductCount();
+        
+        // Get all categories
+        $categories = $model->findAll();
+        
+        // Get product count for each category
+        $db = \Config\Database::connect();
+        foreach($categories as &$cat) {
+            $count = $db->table('products')
+                        ->where('category_id', $cat['id'])
+                        ->countAllResults();
+            $cat['product_count'] = $count;
+        }
+        
+        $data = ['categories' => $categories];
         
         return view('template', [
             'title' => 'Categories',
@@ -85,6 +98,7 @@ class Category extends BaseController
         $model = new CategoryModel();
         $db = \Config\Database::connect();
         
+        // Check if category has products
         $hasProducts = $db->table('products')->where('category_id', $id)->countAllResults();
         
         if ($hasProducts > 0) {

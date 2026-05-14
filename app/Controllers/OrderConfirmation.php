@@ -47,6 +47,7 @@ class OrderConfirmation extends BaseController
         ]);
     }
     
+    // Confirm order - moves from pending to preparing
     public function confirm($order_id)
     {
         $orderModel = new OrderModel();
@@ -58,17 +59,15 @@ class OrderConfirmation extends BaseController
             return redirect()->to('/order-confirmation/pending');
         }
         
-        // FIXED: Only update if status is different
-        if ($order['status'] != 'preparing') {
-            $result = $orderModel->update($order_id, ['status' => 'preparing']);
-            
-            if ($result) {
-                session()->setFlashdata('success', 'Order #' . $order['order_number'] . ' has been confirmed and is now preparing!');
-            } else {
-                session()->setFlashdata('error', 'Failed to confirm order');
-            }
+        $updateData = [
+            'status' => 'preparing',
+            'delivery_status' => 'preparing'
+        ];
+        
+        if ($orderModel->update($order_id, $updateData)) {
+            session()->setFlashdata('success', 'Order #' . $order['order_number'] . ' is now being prepared!');
         } else {
-            session()->setFlashdata('info', 'Order is already in preparing status');
+            session()->setFlashdata('error', 'Failed to confirm order');
         }
         
         return redirect()->to('/order-confirmation/preparing');
@@ -107,7 +106,7 @@ class OrderConfirmation extends BaseController
         ]);
     }
     
-    // FIXED: Mark ready method
+    // Mark order as ready (admin marks order ready for pickup)
     public function markReady($order_id)
     {
         $orderModel = new OrderModel();
@@ -119,16 +118,11 @@ class OrderConfirmation extends BaseController
             return redirect()->to('/order-confirmation/preparing');
         }
         
-        // Check if already ready
-        if ($order['status'] == 'ready') {
-            session()->setFlashdata('info', 'Order is already marked as ready');
-            return redirect()->to('/order-confirmation/ready');
-        }
+        $updateData = [
+            'status' => 'ready'
+        ];
         
-        // Update status to ready
-        $result = $orderModel->update($order_id, ['status' => 'ready']);
-        
-        if ($result) {
+        if ($orderModel->update($order_id, $updateData)) {
             session()->setFlashdata('success', 'Order #' . $order['order_number'] . ' is now ready!');
         } else {
             session()->setFlashdata('error', 'Failed to update order status');
@@ -137,7 +131,7 @@ class OrderConfirmation extends BaseController
         return redirect()->to('/order-confirmation/ready');
     }
     
-    // FIXED: Mark ready for rider
+    // CRITICAL: Mark order as ready for rider pickup - THIS IS WHAT RIDER SEES
     public function markReadyForRider($order_id)
     {
         $orderModel = new OrderModel();
@@ -149,16 +143,12 @@ class OrderConfirmation extends BaseController
             return redirect()->to('/order-confirmation/ready');
         }
         
-        // Check if already ready for rider
-        if ($order['delivery_status'] == 'ready') {
-            session()->setFlashdata('info', 'Order is already marked as ready for rider');
-            return redirect()->to('/order-confirmation/ready');
-        }
+        // THIS SETS delivery_status TO 'ready' - RIDER LOOKS FOR THIS
+        $updateData = [
+            'delivery_status' => 'ready'
+        ];
         
-        // Update delivery_status to 'ready' - THIS IS WHAT RIDER LOOKS FOR
-        $result = $orderModel->update($order_id, ['delivery_status' => 'ready']);
-        
-        if ($result) {
+        if ($orderModel->update($order_id, $updateData)) {
             session()->setFlashdata('success', 'Order #' . $order['order_number'] . ' is now ready for rider pickup!');
         } else {
             session()->setFlashdata('error', 'Failed to update order status');
@@ -168,90 +158,17 @@ class OrderConfirmation extends BaseController
     }
     
     public function ready()
-{
-    $db = \Config\Database::connect();
-    
-    // Get orders that are ready (status = 'ready')
-    $orders = $db->table('orders')
-                 ->select('orders.*, COUNT(order_items.id) as item_count')
-                 ->join('order_items', 'order_items.order_id = orders.id', 'left')
-                 ->where('orders.order_type', 'online')
-                 ->where('orders.status', 'ready')
-                 ->groupBy('orders.id')
-                 ->orderBy('orders.order_date', 'DESC')
-                 ->get()
-                 ->getResultArray();
-    
-    foreach($orders as &$order) {
-        $items = $db->table('order_items')
-                    ->select('order_items.*, products.name as product_name')
-                    ->join('products', 'products.id = order_items.product_id')
-                    ->where('order_items.order_id', $order['id'])
-                    ->get()
-                    ->getResultArray();
-        $order['items'] = $items;
-        
-        // If assigned, get rider name
-        if($order['delivery_status'] == 'assigned' && $order['rider_id']) {
-            $rider = $db->table('riders')
-                        ->select('name')
-                        ->where('id', $order['rider_id'])
-                        ->get()
-                        ->getRowArray();
-            $order['rider_name'] = $rider['name'] ?? 'Unknown Rider';
-        }
-    }
-    
-    $data = ['orders' => $orders];
-    
-    return view('template', [
-        'title' => 'Ready Orders',
-        'active_menu' => 'ready_orders',
-        'content' => view('order_confirmation/ready', $data)
-    ]);
-}
-    
-    // FIXED: Mark completed method
-    public function markCompleted($order_id)
-    {
-        $orderModel = new OrderModel();
-        
-        $order = $orderModel->find($order_id);
-        
-        if (!$order) {
-            session()->setFlashdata('error', 'Order not found');
-            return redirect()->to('/order-confirmation/ready');
-        }
-        
-        // Check if already completed
-        if ($order['status'] == 'completed') {
-            session()->setFlashdata('info', 'Order is already completed');
-            return redirect()->to('/order-confirmation/completed');
-        }
-        
-        $result = $orderModel->update($order_id, ['status' => 'completed']);
-        
-        if ($result) {
-            session()->setFlashdata('success', 'Order #' . $order['order_number'] . ' has been completed!');
-        } else {
-            session()->setFlashdata('error', 'Failed to update order status');
-        }
-        
-        return redirect()->to('/order-confirmation/completed');
-    }
-    
-    public function completed()
     {
         $db = \Config\Database::connect();
         
+        // Get orders that are ready (status = 'ready')
         $orders = $db->table('orders')
                      ->select('orders.*, COUNT(order_items.id) as item_count')
                      ->join('order_items', 'order_items.order_id = orders.id', 'left')
                      ->where('orders.order_type', 'online')
-                     ->where('orders.status', 'completed')
+                     ->where('orders.status', 'ready')
                      ->groupBy('orders.id')
                      ->orderBy('orders.order_date', 'DESC')
-                     ->limit(50)
                      ->get()
                      ->getResultArray();
         
@@ -268,11 +185,58 @@ class OrderConfirmation extends BaseController
         $data = ['orders' => $orders];
         
         return view('template', [
-            'title' => 'Completed Orders',
-            'active_menu' => 'completed_orders',
-            'content' => view('order_confirmation/completed', $data)
+            'title' => 'Ready Orders',
+            'active_menu' => 'ready_orders',
+            'content' => view('order_confirmation/ready', $data)
         ]);
     }
+    
+    public function completed()
+{
+    $db = \Config\Database::connect();
+    
+    // Get ALL completed orders (both from admin and rider)
+    $orders = $db->table('orders')
+                 ->select('orders.*, COUNT(order_items.id) as item_count')
+                 ->join('order_items', 'order_items.order_id = orders.id', 'left')
+                 ->where('orders.order_type', 'online')
+                 ->where('orders.status', 'completed')
+                 ->groupBy('orders.id')
+                 ->orderBy('orders.order_date', 'DESC')
+                 ->limit(100)
+                 ->get()
+                 ->getResultArray();
+    
+    foreach($orders as &$order) {
+        $items = $db->table('order_items')
+                    ->select('order_items.*, products.name as product_name')
+                    ->join('products', 'products.id = order_items.product_id')
+                    ->where('order_items.order_id', $order['id'])
+                    ->get()
+                    ->getResultArray();
+        $order['items'] = $items;
+        
+        // Get rider info if assigned
+        if(isset($order['rider_id']) && $order['rider_id']) {
+            $rider = $db->table('riders')
+                        ->select('name, phone')
+                        ->where('id', $order['rider_id'])
+                        ->get()
+                        ->getRowArray();
+            if($rider) {
+                $order['rider_name'] = $rider['name'];
+            }
+        }
+    }
+    
+    $data = ['orders' => $orders];
+    
+    return view('template', [
+        'title' => 'Completed Orders',
+        'active_menu' => 'completed_orders',
+        'content' => view('order_confirmation/completed', $data)
+    ]);
+}
     
     public function cancel($order_id)
     {
@@ -301,9 +265,7 @@ class OrderConfirmation extends BaseController
             }
         }
         
-        $result = $orderModel->update($order_id, ['status' => 'cancelled', 'delivery_status' => 'cancelled']);
-        
-        if ($result) {
+        if ($orderModel->update($order_id, ['status' => 'cancelled', 'delivery_status' => 'cancelled'])) {
             session()->setFlashdata('success', 'Order #' . $order['order_number'] . ' has been cancelled.');
         } else {
             session()->setFlashdata('error', 'Failed to cancel order');
@@ -312,49 +274,54 @@ class OrderConfirmation extends BaseController
         return redirect()->to('/order-confirmation/pending');
     }
     
-    public function view($order_id)
-{
-    $db = \Config\Database::connect();
-    $orderModel = new OrderModel();
-    
-    $order = $orderModel->find($order_id);
-    
-    if (!$order) {
-        session()->setFlashdata('error', 'Order not found');
-        return redirect()->to('/order-confirmation/pending');
-    }
-    
-    // Get order items
-    $items = $db->table('order_items')
-                ->select('order_items.*, products.name as product_name')
-                ->join('products', 'products.id = order_items.product_id')
-                ->where('order_items.order_id', $order_id)
-                ->get()
-                ->getResultArray();
-    
-    // Get rider information if assigned
-    if(isset($order['rider_id']) && $order['rider_id']) {
-        $rider = $db->table('riders')
-                    ->select('name, phone, vehicle_type, plate_number')
-                    ->where('id', $order['rider_id'])
-                    ->get()
-                    ->getRowArray();
-        if($rider) {
-            $order['rider_phone'] = $rider['phone'] ?? 'N/A';
-            $order['rider_vehicle'] = $rider['vehicle_type'] ?? 'N/A';
-            $order['rider_plate'] = $rider['plate_number'] ?? 'N/A';
+    public function markCompleted($order_id)
+    {
+        $orderModel = new OrderModel();
+        
+        $order = $orderModel->find($order_id);
+        
+        if (!$order) {
+            session()->setFlashdata('error', 'Order not found');
+            return redirect()->to('/order-confirmation/ready');
         }
+        
+        if ($orderModel->update($order_id, ['status' => 'completed'])) {
+            session()->setFlashdata('success', 'Order #' . $order['order_number'] . ' has been completed!');
+        } else {
+            session()->setFlashdata('error', 'Failed to update order status');
+        }
+        
+        return redirect()->to('/order-confirmation/completed');
     }
     
-    $data = [
-        'order' => $order,
-        'items' => $items
-    ];
-    
-    return view('template', [
-        'title' => 'Order Details',
-        'active_menu' => 'pending_orders',
-        'content' => view('order_confirmation/view', $data)
-    ]);
-}
+    public function view($order_id)
+    {
+        $db = \Config\Database::connect();
+        $orderModel = new OrderModel();
+        
+        $order = $orderModel->find($order_id);
+        
+        if (!$order) {
+            session()->setFlashdata('error', 'Order not found');
+            return redirect()->to('/order-confirmation/pending');
+        }
+        
+        $items = $db->table('order_items')
+                    ->select('order_items.*, products.name as product_name')
+                    ->join('products', 'products.id = order_items.product_id')
+                    ->where('order_items.order_id', $order_id)
+                    ->get()
+                    ->getResultArray();
+        
+        $data = [
+            'order' => $order,
+            'items' => $items
+        ];
+        
+        return view('template', [
+            'title' => 'Order Details',
+            'active_menu' => 'pending_orders',
+            'content' => view('order_confirmation/view', $data)
+        ]);
+    }
 }

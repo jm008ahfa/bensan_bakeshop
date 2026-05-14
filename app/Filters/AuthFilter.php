@@ -11,32 +11,25 @@ class AuthFilter implements FilterInterface
     public function before(RequestInterface $request, $arguments = null)
     {
         $currentPath = $request->getUri()->getPath();
-        
-        // Remove leading slash for easier matching
         $currentPath = ltrim($currentPath, '/');
         
-        // Define public paths that don't require login
+        // Public paths that don't require login
         $publicPaths = [
             '',
             'login',
             'auth/doLogin',
             'register',
-            'auth/doRegister',
-            'customer',
-            'customer/login',
-            'customer/register',
-            'customer/auth/doLogin',
-            'customer/auth/doRegister'
+            'auth/doRegister'
         ];
         
-        // Check if current path is public (no login required)
+        // Check if public path
         foreach ($publicPaths as $path) {
             if ($currentPath === $path) {
                 return;
             }
         }
         
-        // Check if user is logged in
+        // Check if logged in
         if (!session()->get('logged_in')) {
             return redirect()->to('/login');
         }
@@ -44,7 +37,7 @@ class AuthFilter implements FilterInterface
         // Get user role
         $role = session()->get('role');
         
-        // Define allowed paths for staff (redirect to POS instead of dashboard)
+        // Staff allowed paths
         $staffAllowedPaths = [
             'pos',
             'order-confirmation',
@@ -54,15 +47,16 @@ class AuthFilter implements FilterInterface
             'order-confirmation/completed',
             'order-confirmation/confirm',
             'order-confirmation/markReady',
+            'order-confirmation/markReadyForRider',
             'order-confirmation/markCompleted',
             'order-confirmation/cancel',
             'order-confirmation/view',
             'logout'
         ];
         
-        // If user is staff
+        // If staff, check access
         if ($role === 'staff') {
-            // Check if trying to access dashboard (not allowed)
+            // Redirect dashboard to POS
             if ($currentPath === 'dashboard') {
                 return redirect()->to('/pos');
             }
@@ -76,8 +70,9 @@ class AuthFilter implements FilterInterface
                 }
             }
             
+            // If not allowed, redirect to POS
             if (!$allowed) {
-                return redirect()->to('/pos')->with('error', 'Access denied. Staff can only access POS and Online Orders.');
+                return redirect()->to('/pos');
             }
         }
         
@@ -86,6 +81,6 @@ class AuthFilter implements FilterInterface
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
-        // Nothing needed here
+        // Nothing needed
     }
 }

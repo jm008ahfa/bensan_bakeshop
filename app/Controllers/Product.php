@@ -12,32 +12,15 @@ class Product extends BaseController
         $model = new ProductModel();
         $products = $model->findAll();
         
-        // Add image_url to each product
         foreach($products as &$product) {
             if(!empty($product['image']) && file_exists('uploads/products/' . $product['image'])) {
                 $product['image_url'] = base_url('uploads/products/' . $product['image']);
             } else {
                 $product['image_url'] = base_url('assets/images/default-product.png');
             }
-            
-            // Add status
-            if($product['stock'] <= 0) {
-                $product['status'] = 'Out of Stock';
-                $product['status_class'] = 'danger';
-            } elseif($product['stock'] < 20) {
-                $product['status'] = 'Low Stock';
-                $product['status_class'] = 'warning';
-            } else {
-                $product['status'] = 'Available';
-                $product['status_class'] = 'success';
-            }
         }
         
-        $data = [
-            'products' => $products,
-            'title' => 'Products',
-            'active_menu' => 'products'
-        ];
+        $data = ['products' => $products];
         
         return view('template', [
             'title' => 'Products',
@@ -46,6 +29,7 @@ class Product extends BaseController
         ]);
     }
     
+    // THIS CREATE METHOD MUST EXIST
     public function create()
     {
         $categoryModel = new CategoryModel();
@@ -103,7 +87,6 @@ class Product extends BaseController
             return redirect()->to('/products');
         }
         
-        // Add image_url
         if(!empty($product['image']) && file_exists('uploads/products/' . $product['image'])) {
             $product['image_url'] = base_url('uploads/products/' . $product['image']);
         } else {

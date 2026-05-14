@@ -4,116 +4,91 @@
         
         <!-- Header -->
         <div style="padding: 24px; background: #1a1a2e; color: white;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-                <div>
-                    <h2 style="font-size: 1.3rem; margin-bottom: 4px;">Order <?= $order['order_number'] ?></h2>
-                    <p style="font-size: 0.8rem; opacity: 0.8;">Placed on <?= date('F d, Y h:i A', strtotime($order['order_date'])) ?></p>
-                </div>
-                <?php
-                $status = $order['status'] ?? 'pending';
-                $statusConfig = [
-                    'pending' => ['bg' => '#fff3e0', 'color' => '#e65100', 'text' => 'Pending'],
-                    'preparing' => ['bg' => '#e3f2fd', 'color' => '#1565c0', 'text' => 'Preparing'],
-                    'ready' => ['bg' => '#e8f5e9', 'color' => '#2e7d32', 'text' => 'Ready for Pickup'],
-                    'completed' => ['bg' => '#e8f5e9', 'color' => '#2e7d32', 'text' => 'Completed']
-                ];
-                $config = $statusConfig[$status] ?? $statusConfig['pending'];
-                ?>
-                <span style="background: <?= $config['bg'] ?>; color: <?= $config['color'] ?>; padding: 6px 14px; border-radius: 30px; font-size: 0.75rem; font-weight: 600;">
-                    <?= $config['text'] ?>
-                </span>
-            </div>
+            <h2 style="font-size: 1.3rem; margin-bottom: 4px;">Order <?= $order['order_number'] ?></h2>
+            <p style="font-size: 0.8rem; opacity: 0.8;">Placed on <?= date('F d, Y h:i A', strtotime($order['order_date'])) ?></p>
         </div>
         
-        <!-- Status Timeline -->
-        <div style="padding: 24px; border-bottom: 1px solid #eef2f7; background: #fafbfc;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
-                <?php
-                $steps = [
-                    'pending' => ['label' => 'Order Placed', 'icon' => 'clipboard-list'],
-                    'preparing' => ['label' => 'Preparing', 'icon' => 'cog'],
-                    'ready' => ['label' => 'Ready', 'icon' => 'box'],
-                    'completed' => ['label' => 'Delivered', 'icon' => 'flag-checkered']
-                ];
-                $currentStep = $status;
-                $stepIndex = array_search($currentStep, array_keys($steps));
-                ?>
-                <?php foreach($steps as $key => $step): ?>
-                <div style="text-align: center; flex: 1;">
-                    <?php $isActive = array_search($key, array_keys($steps)) <= $stepIndex; ?>
-                    <div style="width: 40px; height: 40px; background: <?= $isActive ? '#ff6b35' : '#e9ecef' ?>; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;">
-                        <i class="fas fa-<?= $step['icon'] ?>" style="color: <?= $isActive ? 'white' : '#adb5bd' ?>;"></i>
-                    </div>
-                    <div style="font-size: 0.75rem; font-weight: <?= $isActive ? '600' : '400' ?>; color: <?= $isActive ? '#1a1a2e' : '#adb5bd' ?>;">
-                        <?= $step['label'] ?>
-                    </div>
-                    <div style="font-size: 0.7rem; color: <?= $isActive ? '#ff6b35' : '#adb5bd' ?>; margin-top: 4px;">
-                        <?php if($isActive && $key == $currentStep): ?>Current<?php elseif($isActive): ?>Completed<?php endif; ?>
-                    </div>
+        <!-- Rider Information Card -->
+        <?php if(isset($order['rider_name']) && $order['rider_name'] && $order['delivery_status'] == 'assigned'): ?>
+        <div style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9); padding: 20px 24px; border-bottom: 1px solid #eef2f7;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                <i class="fas fa-motorcycle" style="font-size: 28px; color: #ff6b35;"></i>
+                <h3 style="margin: 0; font-size: 1.1rem;">Delivery Rider Assigned</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div>
+                    <div style="font-size: 0.7rem; color: #6c757d;">Rider Name</div>
+                    <div style="font-weight: 600; font-size: 1rem;"><?= $order['rider_name'] ?></div>
                 </div>
-                <?php endforeach; ?>
+                <div>
+                    <div style="font-size: 0.7rem; color: #6c757d;">Contact Number</div>
+                    <div><i class="fas fa-phone"></i> <?= $order['rider_phone'] ?? 'N/A' ?></div>
+                </div>
+                <?php if(isset($order['rider_vehicle'])): ?>
+                <div>
+                    <div style="font-size: 0.7rem; color: #6c757d;">Vehicle</div>
+                    <div><i class="fas fa-motorcycle"></i> <?= $order['rider_vehicle'] ?> (<?= $order['rider_plate'] ?? 'N/A' ?>)</div>
+                </div>
+                <?php endif; ?>
+                <?php if(isset($order['estimated_delivery_time'])): ?>
+                <div>
+                    <div style="font-size: 0.7rem; color: #6c757d;">Estimated Delivery</div>
+                    <div><i class="fas fa-clock"></i> <?= date('h:i A', strtotime($order['estimated_delivery_time'])) ?></div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
+        <?php endif; ?>
         
         <!-- Order Items -->
         <div style="padding: 24px; border-bottom: 1px solid #eef2f7;">
             <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 16px;">Order Items</h3>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                <?php foreach($order['items'] as $item): ?>
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eef2f7;">
-                    <div>
-                        <div style="font-weight: 500;"><?= $item['product_name'] ?></div>
-                        <div style="font-size: 0.7rem; color: #6c757d;">₱<?= number_format($item['price'], 2) ?> x <?= $item['quantity'] ?></div>
-                    </div>
-                    <div style="font-weight: 600;">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
-                </div>
-                <?php endforeach; ?>
+            <?php foreach($order['items'] as $item): ?>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eef2f7;">
+                <div><?= $item['product_name'] ?> x <?= $item['quantity'] ?></div>
+                <div>₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
             </div>
-            
-            <div style="margin-top: 20px; padding-top: 16px; border-top: 2px solid #eef2f7;">
-                <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 700;">
-                    <span>Total</span>
-                    <span style="color: #ff6b35;">₱<?= number_format($order['total'], 2) ?></span>
-                </div>
+            <?php endforeach; ?>
+            <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 15px; padding-top: 15px; border-top: 2px solid #eef2f7;">
+                <span>Total</span>
+                <span style="color: #ff6b35;">₱<?= number_format($order['total'], 2) ?></span>
             </div>
         </div>
         
         <!-- Delivery Information -->
         <div style="padding: 24px; background: #fafbfc;">
             <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 16px;">Delivery Information</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                 <div>
                     <div style="font-size: 0.7rem; color: #6c757d;">Customer Name</div>
-                    <div style="font-size: 0.85rem; font-weight: 500;"><?= $order['customer_name'] ?></div>
+                    <div><?= $order['customer_name'] ?></div>
                 </div>
                 <div>
                     <div style="font-size: 0.7rem; color: #6c757d;">Email</div>
-                    <div style="font-size: 0.85rem;"><?= $order['customer_email'] ?></div>
+                    <div><?= $order['customer_email'] ?></div>
                 </div>
                 <div>
                     <div style="font-size: 0.7rem; color: #6c757d;">Phone</div>
-                    <div style="font-size: 0.85rem;"><?= $order['customer_phone'] ?></div>
+                    <div><?= $order['customer_phone'] ?></div>
                 </div>
                 <div>
                     <div style="font-size: 0.7rem; color: #6c757d;">Delivery Address</div>
-                    <div style="font-size: 0.85rem;"><?= $order['delivery_address'] ?></div>
+                    <div><?= $order['delivery_address'] ?></div>
                 </div>
                 <div>
                     <div style="font-size: 0.7rem; color: #6c757d;">Payment Method</div>
-                    <div style="font-size: 0.85rem;">Cash on Delivery</div>
+                    <div><?= strtoupper($order['payment_method'] ?? 'COD') ?></div>
+                </div>
+                <div>
+                    <div style="font-size: 0.7rem; color: #6c757d;">Payment Status</div>
+                    <div><?= ucfirst($order['payment_status'] ?? 'Pending') ?></div>
                 </div>
             </div>
         </div>
         
-        <!-- Actions -->
-        <div style="padding: 20px 24px; display: flex; gap: 16px; border-top: 1px solid #eef2f7;">
-            <a href="<?= base_url('/customer/track-order') ?>" style="padding: 10px 20px; background: #e9ecef; color: #4a5568; text-decoration: none; border-radius: 30px; font-size: 0.85rem;">
-                <i class="fas fa-arrow-left"></i> Back to Orders
-            </a>
-            <a href="<?= base_url('/customer/store') ?>" style="padding: 10px 20px; background: #ff6b35; color: white; text-decoration: none; border-radius: 30px; font-size: 0.85rem;">
-                <i class="fas fa-shopping-cart"></i> Continue Shopping
-            </a>
+        <div style="padding: 20px 24px; display: flex; gap: 16px;">
+            <a href="<?= base_url('/customer/track-order') ?>" style="padding: 10px 20px; background: #e9ecef; color: #4a5568; text-decoration: none; border-radius: 30px;">← Back to Orders</a>
+            <a href="<?= base_url('/customer/store') ?>" style="padding: 10px 20px; background: #ff6b35; color: white; text-decoration: none; border-radius: 30px;">Continue Shopping</a>
         </div>
-        
     </div>
 </div>

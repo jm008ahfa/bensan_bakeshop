@@ -15,7 +15,6 @@
                             <th>Total</th>
                             <th>Date</th>
                             <th>Delivery Status</th>
-                            <th>Assigned Rider</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -40,22 +39,10 @@
                              </div>
                             </td>
                             <td>
-                                <?php if($order['delivery_status'] == 'assigned' && isset($order['rider_name'])): ?>
-                                    <span class="badge bg-primary">
-                                        <i class="fas fa-motorcycle"></i> <?= $order['rider_name'] ?>
-                                    </span>
-                                <?php else: ?>
-                                    <span class="text-muted">—</span>
-                                <?php endif; ?>
-                             </div>
-                            </td>
-                            <td>
-                                <?php if($order['delivery_status'] == 'ready'): ?>
+                                <?php if($order['delivery_status'] != 'assigned' && $order['delivery_status'] != 'delivered'): ?>
                                     <a href="<?= base_url('/order-confirmation/markReadyForRider/'.$order['id']) ?>" class="btn btn-sm btn-success" onclick="return confirm('Mark this order as ready for rider pickup?')">
                                         <i class="fas fa-motorcycle"></i> Ready for Rider
                                     </a>
-                                <?php elseif($order['delivery_status'] == 'assigned'): ?>
-                                    <span class="badge bg-primary">Rider Assigned</span>
                                 <?php endif; ?>
                                 <a href="<?= base_url('/order-confirmation/view/'.$order['id']) ?>" class="btn btn-sm btn-info">View</a>
                              </div>

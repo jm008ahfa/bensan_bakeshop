@@ -11,6 +11,17 @@ class CustomerAuth extends BaseController
         helper(['url', 'form']);
     }
     
+    // THIS INDEX METHOD IS CRUCIAL - IT HANDLES /customer
+    public function index()
+    {
+        // If already logged in, go to store
+        if (session()->get('customer_logged_in')) {
+            return redirect()->to('/customer/store');
+        }
+        // Otherwise show login page
+        return redirect()->to('/customer/login');
+    }
+    
     public function login()
     {
         if (session()->get('customer_logged_in')) {
@@ -104,7 +115,6 @@ class CustomerAuth extends BaseController
         ]);
     }
     
-    // THIS METHOD HANDLES /customer/account
     public function myAccount()
     {
         if (!session()->get('customer_logged_in')) {
@@ -122,43 +132,6 @@ class CustomerAuth extends BaseController
             'title' => 'My Account',
             'content' => view('customer/my_account', ['orders' => $orders])
         ]);
-    }
-    
-    public function profile()
-    {
-        if (!session()->get('customer_logged_in')) {
-            return redirect()->to('/customer/login');
-        }
-        return view('customer/store_template', [
-            'title' => 'My Profile',
-            'content' => view('customer/profile')
-        ]);
-    }
-    
-    public function updateProfile()
-    {
-        if (!session()->get('customer_logged_in')) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Not logged in']);
-        }
-        
-        $model = new CustomerModel();
-        
-        $data = [
-            'name' => $this->request->getPost('name'),
-            'phone' => $this->request->getPost('phone'),
-            'address' => $this->request->getPost('address')
-        ];
-        
-        if ($model->update(session()->get('customer_id'), $data)) {
-            session()->set([
-                'customer_name' => $data['name'],
-                'customer_phone' => $data['phone'],
-                'customer_address' => $data['address']
-            ]);
-            return $this->response->setJSON(['success' => true, 'message' => 'Profile updated']);
-        }
-        
-        return $this->response->setJSON(['success' => false, 'message' => 'Update failed']);
     }
     
     public function logout()

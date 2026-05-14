@@ -18,34 +18,37 @@ class Dashboard extends BaseController
         $orderModel = new OrderModel();
         $db = \Config\Database::connect();
         
+        // Get all products
         $products = $productModel->findAll();
         
+        // Calculate total stock and low stock count
         $total_stock = 0;
         $low_stock_count = 0;
         
         foreach($products as $product) {
             $total_stock += $product['stock'];
-            if($product['stock'] < 20) {
+            if($product['stock'] < 20 && $product['stock'] > 0) {
                 $low_stock_count++;
             }
         }
         
-        $total_orders = $orderModel->countAll();
+        // Get total orders count
+        $total_orders = $db->table('orders')->countAllResults();
         
+        // Get recent orders (limit to 5 for compact display)
         $recent_orders = $db->table('orders')
-                            ->select('id, order_number, customer_name, total, order_date')
+                            ->select('order_number, customer_name, total, order_date, status')
                             ->orderBy('order_date', 'DESC')
                             ->limit(5)
                             ->get()
                             ->getResultArray();
         
         $data = [
-            'products'       => $products,
-            'total_products' => count($products),
-            'total_stock'    => $total_stock,
-            'low_stock_count'=> $low_stock_count,
-            'total_orders'   => $total_orders,
-            'recent_orders'  => $recent_orders
+            'total_products'   => count($products),
+            'total_stock'      => $total_stock,
+            'low_stock_count'  => $low_stock_count,
+            'total_orders'     => $total_orders,
+            'recent_orders'    => $recent_orders
         ];
         
         return view('template', [

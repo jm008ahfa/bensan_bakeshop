@@ -449,32 +449,7 @@
     <?= $content ?>
 </div>
 
-<!-- Footer -->
-<footer class="footer">
-    <div class="container">
-        <div class="footer-grid">
-            <div class="footer-col">
-                <h4>Bensan Bakeshop</h4>
-                <p>Freshly baked goods made with love.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Quick Links</h4>
-                <p><a href="<?= base_url('/customer/store') ?>">Shop</a></p>
-                <p><a href="<?= base_url('/customer/products') ?>">Products</a></p>
-                <p><a href="<?= base_url('/customer/track-order') ?>">Track Orders</a></p>
-                <p><a href="<?= base_url('/customer/account') ?>">My Account</a></p>
-            </div>
-            <div class="footer-col">
-                <h4>Contact</h4>
-                <p><i class="fas fa-phone"></i> +63 912 345 6789</p>
-                <p><i class="fas fa-envelope"></i> hello@bensan.com</p>
-            </div>
-        </div>
-        <div class="copyright">
-            <p>&copy; 2024 Bensan Bakeshop. All rights reserved.</p>
-        </div>
-    </div>
-</footer>
+
 
 <!-- Cart Sidebar -->
 <div class="overlay" id="overlay" onclick="closeCart()"></div>
@@ -497,33 +472,67 @@
 
 <!-- Checkout Modal -->
 <div id="checkoutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
-    <div style="background: white; width: 500px; max-width: 90%; border-radius: 24px; overflow: hidden;">
-        <div style="padding: 20px 24px; background: #1a1a2e; color: white; display: flex; justify-content: space-between;">
-            <h3>Checkout</h3>
-            <button onclick="closeCheckout()" style="background: none; border: none; color: white; font-size: 24px;">&times;</button>
+    <div style="background: white; width: 500px; max-width: 90%; border-radius: 24px; overflow: hidden; animation: fadeIn 0.3s ease;">
+        <div style="padding: 20px 24px; background: #1a1a2e; color: white; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0;"><i class="fas fa-clipboard-list"></i> Checkout</h3>
+            <button onclick="closeCheckout()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">&times;</button>
         </div>
         <div style="padding: 24px;">
             <form id="checkoutForm">
-                <input type="text" id="customerName" value="<?= session()->get('customer_name') ?>" placeholder="Full Name" required style="width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #eef2f7; border-radius: 12px;">
-                <input type="email" id="customerEmail" value="<?= session()->get('customer_email') ?>" placeholder="Email" required style="width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #eef2f7; border-radius: 12px;">
-                <input type="tel" id="customerPhone" value="<?= session()->get('customer_phone') ?>" placeholder="Phone" required style="width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #eef2f7; border-radius: 12px;">
-                <textarea id="deliveryAddress" rows="3" placeholder="Delivery Address" required style="width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #eef2f7; border-radius: 12px;"><?= session()->get('customer_address') ?></textarea>
-                <div id="orderSummary" style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin-bottom: 16px;"></div>
-                <button type="submit" style="width: 100%; padding: 14px; background: #28a745; color: white; border: none; border-radius: 40px; font-weight: 600;">Place Order</button>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px;">Full Name</label>
+                    <input type="text" id="customerName" value="<?= session()->get('customer_name') ?>" required style="width: 100%; padding: 12px; border: 1px solid #eef2f7; border-radius: 12px;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px;">Email Address</label>
+                    <input type="email" id="customerEmail" value="<?= session()->get('customer_email') ?>" required style="width: 100%; padding: 12px; border: 1px solid #eef2f7; border-radius: 12px;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px;">Phone Number</label>
+                    <input type="tel" id="customerPhone" value="<?= session()->get('customer_phone') ?>" required style="width: 100%; padding: 12px; border: 1px solid #eef2f7; border-radius: 12px;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px;">Delivery Address</label>
+                    <textarea id="deliveryAddress" rows="3" required style="width: 100%; padding: 12px; border: 1px solid #eef2f7; border-radius: 12px;"><?= session()->get('customer_address') ?></textarea>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px;">Payment Method</label>
+                    <select id="paymentMethod" style="width: 100%; padding: 12px; border: 1px solid #eef2f7; border-radius: 12px;">
+                        <option value="cod">Cash on Delivery</option>
+                        <option value="gcash">GCash</option>
+                        <option value="bank">Bank Transfer</option>
+                    </select>
+                </div>
+                <div style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                    <div id="orderSummary" style="margin-bottom: 10px;"></div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem; border-top: 1px solid #eef2f7; padding-top: 12px;">
+                        <span>Total:</span>
+                        <span id="checkoutTotal" style="color: #ff6b35;">₱0</span>
+                    </div>
+                </div>
+                <button type="submit" class="btn-checkout" style="width: 100%; padding: 14px; background: #ff6b35; color: white; border: none; border-radius: 40px; font-weight: 600; cursor: pointer;">
+                    <i class="fas fa-check-circle"></i> Place Order
+                </button>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Success Modal -->
+<!-- Order Success Modal -->
 <div id="successModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
-    <div style="background: white; width: 400px; max-width: 90%; border-radius: 24px; text-align: center; padding: 32px;">
+    <div style="background: white; width: 400px; max-width: 90%; border-radius: 24px; text-align: center; padding: 32px; animation: fadeIn 0.3s ease;">
         <i class="fas fa-check-circle" style="font-size: 64px; color: #28a745; margin-bottom: 16px;"></i>
-        <h3>Order Placed!</h3>
-        <p id="successMessage" style="margin: 16px 0;">Your order has been received</p>
+        <h3 style="margin-bottom: 8px;">Order Placed!</h3>
+        <p style="color: #6c757d; margin-bottom: 16px;">Your order has been received</p>
+        <div style="background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 20px;">
+            <p><strong>Order Number:</strong> <span id="successOrderNumber"></span></p>
+            <p><strong>Total:</strong> <span id="successTotal" style="color: #ff6b35;"></span></p>
+        </div>
         <button onclick="closeSuccessModal()" style="padding: 12px 24px; background: #ff6b35; color: white; border: none; border-radius: 40px; cursor: pointer;">Continue Shopping</button>
     </div>
 </div>
+
+
 
 <div class="toast-msg" id="toastMsg"></div>
 
@@ -618,8 +627,10 @@ function updateQuantity(index, change) {
 function toggleCart() {
     const sidebar = document.getElementById('cartSidebar');
     const overlay = document.getElementById('overlay');
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('show');
+    if (sidebar) {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('show');
+    }
 }
 
 function closeCart() {
@@ -627,41 +638,6 @@ function closeCart() {
     const overlay = document.getElementById('overlay');
     sidebar.classList.remove('open');
     overlay.classList.remove('show');
-}
-
-function showCheckout() {
-    if (cart.length === 0) {
-        showToast('Cart is empty!', 'error');
-        return;
-    }
-    let summaryHtml = '', total = 0;
-    cart.forEach(item => {
-        const itemTotal = item.price * item.quantity;
-        total += itemTotal;
-        summaryHtml += `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-            <span>${item.name} x ${item.quantity}</span>
-            <span>₱${itemTotal.toFixed(2)}</span>
-        </div>`;
-    });
-    summaryHtml += `<div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px solid #eef2f7; padding-top: 12px; margin-top: 8px;">
-        <span>Total:</span>
-        <span>₱${total.toFixed(2)}</span>
-    </div>`;
-    document.getElementById('orderSummary').innerHTML = summaryHtml;
-    closeCart();
-    document.getElementById('checkoutModal').style.display = 'flex';
-}
-
-function closeCheckout() {
-    document.getElementById('checkoutModal').style.display = 'none';
-}
-
-function closeSuccessModal() {
-    document.getElementById('successModal').style.display = 'none';
-    cart = [];
-    saveCart();
-    updateCartUI();
-    window.location.href = '<?= base_url("/customer/store") ?>';
 }
 
 function showToast(msg, type) {
@@ -674,45 +650,109 @@ function showToast(msg, type) {
     }, 2000);
 }
 
-document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+// ============================================
+// CHECKOUT FUNCTIONS - ADD THIS CODE HERE
+// ============================================
+
+function showCheckout() {
     if (cart.length === 0) {
         showToast('Cart is empty!', 'error');
         return;
     }
-    const btn = this.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    // Calculate total
+    let total = 0;
+    let summaryHtml = '';
+    cart.forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        summaryHtml += `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>${item.name} x ${item.quantity}</span>
+            <span>₱${itemTotal.toFixed(2)}</span>
+        </div>`;
+    });
+    
+    document.getElementById('orderSummary').innerHTML = summaryHtml;
+    document.getElementById('checkoutTotal').innerText = `₱${total.toFixed(2)}`;
+    closeCart();
+    document.getElementById('checkoutModal').style.display = 'flex';
+    document.getElementById('overlay').classList.add('show');
+}
+
+function closeCheckout() {
+    document.getElementById('checkoutModal').style.display = 'none';
+    document.getElementById('overlay').classList.remove('show');
+}
+
+function closeSuccessModal() {
+    document.getElementById('successModal').style.display = 'none';
+    document.getElementById('overlay').classList.remove('show');
+    window.location.href = '<?= base_url("/customer/track-order") ?>';
+}
+
+// Checkout form submission
+document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (cart.length === 0) {
+        showToast('Cart is empty!', 'error');
+        return;
+    }
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    const orderData = {
+        cart: JSON.stringify(cart),
+        customer_name: document.getElementById('customerName').value,
+        customer_email: document.getElementById('customerEmail').value,
+        customer_phone: document.getElementById('customerPhone').value,
+        delivery_address: document.getElementById('deliveryAddress').value,
+        payment_method: document.getElementById('paymentMethod').value
+    };
+    
     try {
         const response = await fetch('<?= base_url("/customer/placeOrder") ?>', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                'cart': JSON.stringify(cart),
-                'customer_name': document.getElementById('customerName').value,
-                'customer_email': document.getElementById('customerEmail').value,
-                'customer_phone': document.getElementById('customerPhone').value,
-                'delivery_address': document.getElementById('deliveryAddress').value
-            })
+            body: new URLSearchParams(orderData)
         });
+        
         const data = await response.json();
+        
         if (data.success) {
             closeCheckout();
-            document.getElementById('successMessage').innerHTML = `Order #${data.order_number}<br>Total: ₱${data.total.toFixed(2)}`;
+            document.getElementById('successOrderNumber').innerText = data.order_number;
+            document.getElementById('successTotal').innerText = `₱${data.total.toFixed(2)}`;
             document.getElementById('successModal').style.display = 'flex';
+            document.getElementById('overlay').classList.add('show');
+            // Clear cart
+            cart = [];
+            saveCart();
+            updateCartUI();
             showToast('Order placed successfully!', 'success');
         } else {
             showToast(data.message, 'error');
         }
     } catch (error) {
+        console.error('Error:', error);
         showToast('Failed to place order!', 'error');
     } finally {
-        btn.disabled = false;
-        btn.innerHTML = 'Place Order';
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
     }
 });
 
+// ============================================
+// END OF CHECKOUT FUNCTIONS
+// ============================================
+
 loadCart();
+</script>
+
+
 </script>
 </body>
 </html>

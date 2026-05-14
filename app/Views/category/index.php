@@ -25,11 +25,13 @@
                             <td>
                                 <i class="fas fa-folder-open text-warning"></i>
                                 <strong><?= $cat['name'] ?></strong>
-                            </td>
+                             </div>
+                            <tr>
                             <td><?= $cat['description'] ?? 'No description' ?></td>
                             <td>
                                 <span class="badge bg-info"><?= $cat['product_count'] ?? 0 ?> products</span>
-                            </td>
+                             </div>
+                            <tr>
                             <td>
                                 <a href="<?= base_url('/category/edit/'.$cat['id']) ?>" class="btn btn-sm btn-warning">
                                     <i class="fas fa-edit"></i> Edit
@@ -38,7 +40,7 @@
                                    onclick="return confirm('Delete this category?')">
                                     <i class="fas fa-trash"></i> Delete
                                 </a>
-                            </td>
+                             </div>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>

@@ -2,14 +2,15 @@
 
 namespace App\Controllers;
 
-use App\Models\UserModel;
-
 class Auth extends BaseController
 {
     public function index()
     {
-        // If already logged in, go to dashboard
         if (session()->get('logged_in')) {
+            $role = session()->get('role');
+            if ($role === 'staff') {
+                return redirect()->to('/pos');
+            }
             return redirect()->to('/dashboard');
         }
         return $this->login();
@@ -18,72 +19,109 @@ class Auth extends BaseController
     public function login()
     {
         if (session()->get('logged_in')) {
+            $role = session()->get('role');
+            if ($role === 'staff') {
+                return redirect()->to('/pos');
+            }
             return redirect()->to('/dashboard');
         }
-        
         return view('auth/login');
     }
     
     public function doLogin()
-{
-    $model = new UserModel();
-    $username = $this->request->getPost('username');
-    $password = $this->request->getPost('password');
-    
-    $user = $model->login($username, $password);
-    
-    if ($user) {
-        session()->set([
-            'user_id'   => $user['id'],
-            'username'  => $user['username'],
-            'fullname'  => $user['fullname'],
-            'role'      => $user['role'],
-            'logged_in' => true
-        ]);
+    {
+        $db = \Config\Database::connect();
         
-        // Redirect based on role
-        if ($user['role'] === 'staff') {
-            return redirect()->to('/pos');
-        } else {
+        $username = $this->request->getPost('username');
+        $password = $this->request->getPost('password');
+        
+        $query = $db->query("SELECT * FROM users WHERE username = ? AND password = MD5(?)", [$username, $password]);
+        $user = $query->getRowArray();
+        
+        if ($user) {
+            session()->set([
+                'user_id'   => $user['id'],
+                'username'  => $user['username'],
+                'fullname'  => $user['fullname'],
+                'role'      => $user['role'],
+                'logged_in' => true
+            ]);
+            
+            if ($user['role'] === 'staff') {
+                return redirect()->to('/pos');
+            }
             return redirect()->to('/dashboard');
         }
+        
+        session()->setFlashdata('error', 'Invalid username or password');
+        return redirect()->to('/login');
     }
     
-    session()->setFlashdata('error', 'Invalid username or password');
-    return redirect()->to('/login');
-}
+    // ============================================
+    // SIMPLE REGISTRATION - REWRITTEN
+    // ============================================
+    public function register()
+    {
+        if (session()->get('logged_in')) {
+            return redirect()->to('/dashboard');
+        }
+        return view('auth/register');
+    }
     
     public function doRegister()
     {
-        $model = new UserModel();
+        // Get POST data
+        $fullname = $this->request->getPost('fullname');
+        $username = $this->request->getPost('username');
+        $password = $this->request->getPost('password');
         
-        $existing = $model->where('username', $this->request->getPost('username'))->first();
-        if ($existing) {
-            session()->setFlashdata('error', 'Username already exists!');
+        // Basic validation
+        if (empty($fullname) || empty($username) || empty($password)) {
+            session()->setFlashdata('message', 'All fields are required');
+            session()->setFlashdata('message_type', 'error');
             return redirect()->to('/register');
         }
         
-        // First user becomes admin, others become staff
-        $userCount = $model->countAll();
-        $role = ($userCount == 0) ? 'admin' : 'staff';
-        
-        $data = [
-            'username' => $this->request->getPost('username'),
-            'password' => md5($this->request->getPost('password')),
-            'fullname' => $this->request->getPost('fullname'),
-            'role'     => $role
-        ];
-        
-        if ($model->insert($data)) {
-            session()->setFlashdata('success', 'Registration successful! Please login.');
-            return redirect()->to('/login');
+        if (strlen($password) < 6) {
+            session()->setFlashdata('message', 'Password must be at least 6 characters');
+            session()->setFlashdata('message_type', 'error');
+            return redirect()->to('/register');
         }
         
-        session()->setFlashdata('error', 'Registration failed!');
-        return redirect()->to('/register');
+        $db = \Config\Database::connect();
+        
+        // Check if username exists
+        $check = $db->query("SELECT COUNT(*) as count FROM users WHERE username = ?", [$username]);
+        $result = $check->getRow();
+        
+        if ($result->count > 0) {
+            session()->setFlashdata('message', 'Username already exists! Please choose another.');
+            session()->setFlashdata('message_type', 'error');
+            return redirect()->to('/register');
+        }
+        
+        // Get user count to determine role
+        $countQuery = $db->query("SELECT COUNT(*) as total FROM users");
+        $countResult = $countQuery->getRow();
+        $userCount = $countResult->total;
+        $role = ($userCount == 0) ? 'admin' : 'staff';
+        
+        // Insert new user
+        $insert = $db->query("INSERT INTO users (username, password, fullname, role) VALUES (?, MD5(?), ?, ?)", 
+            [$username, $password, $fullname, $role]);
+        
+        if ($insert) {
+            session()->setFlashdata('message', 'Registration successful! Please login.');
+            session()->setFlashdata('message_type', 'success');
+            return redirect()->to('/login');
+        } else {
+            session()->setFlashdata('message', 'Registration failed. Please try again.');
+            session()->setFlashdata('message_type', 'error');
+            return redirect()->to('/register');
+        }
     }
+    // ============================================
     
-    // FIXED: Logout method
     public function logout()
     {
         session()->destroy();

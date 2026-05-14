@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Bensan Bakeshop</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -20,102 +20,22 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            position: relative;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            overflow-x: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
         }
-
-        /* Animated Background Shapes */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(255,255,255,0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
-                repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 8px);
-            pointer-events: none;
-        }
-
-        /* Floating Baked Goods Decoration */
-        .floating-icon {
-            position: absolute;
-            font-size: 60px;
-            opacity: 0.12;
-            animation: float 6s ease-in-out infinite;
-            pointer-events: none;
-            color: white;
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-25px) rotate(8deg); }
-        }
-
-        @keyframes floatReverse {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(25px) rotate(-8deg); }
-        }
-
-        .icon-1 { top: 10%; left: 5%; animation-delay: 0s; font-size: 70px; }
-        .icon-2 { top: 80%; left: 8%; animation-delay: 1s; font-size: 90px; animation-name: floatReverse; }
-        .icon-3 { top: 15%; right: 8%; animation-delay: 2s; font-size: 55px; }
-        .icon-4 { bottom: 12%; right: 10%; animation-delay: 1.5s; font-size: 80px; animation-name: floatReverse; }
-        .icon-5 { top: 45%; left: 90%; animation-delay: 0.5s; font-size: 50px; }
-        .icon-6 { bottom: 35%; left: 12%; animation-delay: 2.5s; font-size: 65px; }
-        .icon-7 { top: 60%; right: 15%; animation-delay: 3s; font-size: 45px; }
-        .icon-8 { bottom: 50%; left: 85%; animation-delay: 1.8s; font-size: 55px; animation-name: floatReverse; }
 
         .register-container {
-            max-width: 520px;
+            max-width: 450px;
             width: 100%;
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 40px;
-            padding: 50px 42px;
-            box-shadow: 0 30px 60px -20px rgba(0,0,0,0.3);
-            animation: fadeInUp 0.6s ease;
-            position: relative;
-            z-index: 10;
-            backdrop-filter: blur(2px);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: white;
+            border-radius: 32px;
+            padding: 48px 42px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease;
         }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Decorative corners */
-        .register-container::before {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            width: 80px;
-            height: 80px;
-            border-top: 3px solid #28a745;
-            border-left: 3px solid #28a745;
-            border-radius: 20px 0 0 0;
-            pointer-events: none;
-            opacity: 0.4;
-        }
-
-        .register-container::after {
-            content: '';
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 80px;
-            height: 80px;
-            border-bottom: 3px solid #28a745;
-            border-right: 3px solid #28a745;
-            border-radius: 0 0 20px 0;
-            pointer-events: none;
-            opacity: 0.4;
         }
 
         .logo {
@@ -133,11 +53,6 @@
             justify-content: center;
             margin-bottom: 20px;
             box-shadow: 0 15px 30px rgba(40,167,69,0.3);
-            transition: transform 0.3s;
-        }
-
-        .logo-icon:hover {
-            transform: scale(1.05);
         }
 
         .logo-icon i {
@@ -148,10 +63,7 @@
         .logo h1 {
             font-size: 2rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #1a1a2e, #2d2d44);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #1a1a2e;
             margin-bottom: 8px;
         }
 
@@ -161,16 +73,15 @@
         }
 
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-            font-size: 0.8rem;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
             color: #1a1a2e;
-            letter-spacing: 0.3px;
         }
 
         .input-wrapper {
@@ -183,45 +94,23 @@
             top: 50%;
             transform: translateY(-50%);
             color: #adb5bd;
-            font-size: 16px;
-            transition: all 0.2s;
-            z-index: 1;
         }
 
-        .input-wrapper input,
-        .input-wrapper textarea {
+        .input-wrapper input {
             width: 100%;
             padding: 14px 18px 14px 48px;
             border: 2px solid #e9ecef;
-            border-radius: 14px;
-            font-size: 0.9rem;
+            border-radius: 16px;
+            font-size: 0.95rem;
             font-family: 'Inter', sans-serif;
             transition: all 0.2s;
             background: #f8f9fa;
         }
 
-        .input-wrapper textarea {
-            padding: 14px 18px;
-            resize: vertical;
-            min-height: 90px;
-        }
-
-        .input-wrapper input:hover,
-        .input-wrapper textarea:hover {
-            border-color: #dee2e6;
-            background: white;
-        }
-
-        .input-wrapper input:focus,
-        .input-wrapper textarea:focus {
+        .input-wrapper input:focus {
             outline: none;
             border-color: #28a745;
-            background: white;
             box-shadow: 0 0 0 4px rgba(40,167,69,0.1);
-        }
-
-        .input-wrapper input:focus + i {
-            color: #28a745;
         }
 
         .btn-register {
@@ -233,24 +122,14 @@
             border-radius: 16px;
             font-size: 1rem;
             font-weight: 700;
-            font-family: 'Inter', sans-serif;
             cursor: pointer;
-            transition: all 0.3s;
             margin-top: 10px;
-            box-shadow: 0 8px 20px rgba(40,167,69,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            transition: all 0.2s;
         }
 
         .btn-register:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(40,167,69,0.4);
-        }
-
-        .btn-register:active {
-            transform: translateY(0);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40,167,69,0.3);
         }
 
         .login-link {
@@ -260,47 +139,20 @@
             border-top: 1px solid #eef2f7;
         }
 
-        .login-link p {
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-
         .login-link a {
             color: #28a745;
             text-decoration: none;
             font-weight: 700;
-            position: relative;
-        }
-
-        .login-link a::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: #28a745;
-            transition: width 0.2s;
-        }
-
-        .login-link a:hover::after {
-            width: 100%;
         }
 
         .alert {
             padding: 12px 16px;
-            border-radius: 14px;
+            border-radius: 12px;
             font-size: 0.8rem;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-
-        .alert-success {
-            background: #e8f5e9;
-            color: #2e7d32;
-            border-left: 4px solid #28a745;
+            gap: 8px;
         }
 
         .alert-danger {
@@ -309,137 +161,74 @@
             border-left: 4px solid #dc3545;
         }
 
-        .alert-errors {
-            background: #fff3e0;
-            color: #e65100;
-            border-left: 4px solid #ffc107;
-            margin-bottom: 20px;
-        }
-
-        .alert-errors ul {
-            margin-left: 20px;
-            font-size: 0.8rem;
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #28a745;
         }
 
         @media (max-width: 480px) {
             .register-container {
-                padding: 40px 28px;
-                border-radius: 32px;
-            }
-            .floating-icon {
-                display: none;
-            }
-            .register-container::before,
-            .register-container::after {
-                width: 50px;
-                height: 50px;
+                padding: 32px 24px;
             }
         }
     </style>
 </head>
 <body>
-
-<!-- Decorative Floating Icons -->
-<i class="fas fa-bread-slice floating-icon icon-1"></i>
-<i class="fas fa-cake floating-icon icon-2"></i>
-<i class="fas fa-cookie-bite floating-icon icon-3"></i>
-<i class="fas fa-mug-hot floating-icon icon-4"></i>
-<i class="fas fa-croissant floating-icon icon-5"></i>
-<i class="fas fa-cupcake floating-icon icon-6"></i>
-<i class="fas fa-donut floating-icon icon-7"></i>
-<i class="fas fa-ice-cream floating-icon icon-8"></i>
-
-<div class="register-container">
-    <div class="logo">
-        <div class="logo-icon">
-            <i class="fas fa-user-plus"></i>
+    <div class="register-container">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h1>Create Account</h1>
+            <p>Join Bensan Bakeshop management</p>
         </div>
-        <h1>Join Our Bakery</h1>
-        <p>Create an account to start ordering</p>
+
+        <?php if(session()->getFlashdata('error')): ?>
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> <?= session()->getFlashdata('error') ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if(session()->getFlashdata('success')): ?>
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> <?= session()->getFlashdata('success') ?>
+            </div>
+        <?php endif; ?>
+
+        <form action="<?= base_url('/auth/doRegister') ?>" method="post">
+            <div class="form-group">
+                <label>Full Name</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="fullname" placeholder="Enter your full name" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Username</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user-circle"></i>
+                    <input type="text" name="username" placeholder="Choose a username" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" placeholder="Create a password (min 6 characters)" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register">
+                <i class="fas fa-check"></i> Create Account
+            </button>
+        </form>
+
+        <div class="login-link">
+            <a href="<?= base_url('/login') ?>">Already have an account? Sign in</a>
+        </div>
     </div>
-
-    <?php if(session()->getFlashdata('error')): ?>
-        <div class="alert alert-danger">
-            <i class="fas fa-exclamation-circle"></i> <?= session()->getFlashdata('error') ?>
-        </div>
-    <?php endif; ?>
-
-    <?php if(session()->getFlashdata('success')): ?>
-        <div class="alert alert-success">
-            <i class="fas fa-check-circle"></i> <?= session()->getFlashdata('success') ?>
-        </div>
-    <?php endif; ?>
-
-    <?php if(session()->getFlashdata('errors')): ?>
-        <div class="alert alert-errors">
-            <i class="fas fa-info-circle"></i> Please fix the following errors:
-            <ul>
-                <?php foreach(session()->getFlashdata('errors') as $error): ?>
-                    <li><?= $error ?></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-    <?php endif; ?>
-
-    <form action="<?= base_url('/customer/auth/doRegister') ?>" method="post">
-        <div class="form-group">
-            <label>Full Name</label>
-            <div class="input-wrapper">
-                <i class="fas fa-user"></i>
-                <input type="text" name="name" value="<?= old('name') ?>" placeholder="Enter your full name" required>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Email Address</label>
-            <div class="input-wrapper">
-                <i class="fas fa-envelope"></i>
-                <input type="email" name="email" value="<?= old('email') ?>" placeholder="Enter your email address" required>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Phone Number</label>
-            <div class="input-wrapper">
-                <i class="fas fa-phone"></i>
-                <input type="tel" name="phone" value="<?= old('phone') ?>" placeholder="Enter your phone number" required>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Delivery Address</label>
-            <div class="input-wrapper">
-                <i class="fas fa-map-marker-alt"></i>
-                <textarea name="address" placeholder="Enter your delivery address"><?= old('address') ?></textarea>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Password</label>
-            <div class="input-wrapper">
-                <i class="fas fa-lock"></i>
-                <input type="password" name="password" placeholder="Create a password (min 6 characters)" required>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Confirm Password</label>
-            <div class="input-wrapper">
-                <i class="fas fa-check-circle"></i>
-                <input type="password" name="confirm_password" placeholder="Confirm your password" required>
-            </div>
-        </div>
-
-        <button type="submit" class="btn-register">
-            <span>Create Account</span>
-            <i class="fas fa-arrow-right"></i>
-        </button>
-    </form>
-
-    <div class="login-link">
-        <p>Already have an account? <a href="<?= base_url('/customer/login') ?>">Sign in here</a></p>
-    </div>
-</div>
-
 </body>
 </html>

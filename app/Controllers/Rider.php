@@ -48,9 +48,6 @@ class Rider extends BaseController
         return redirect()->to('/rider/login');
     }
     
-    // ============================================
-    // REGISTER METHODS - ADD THESE
-    // ============================================
     public function register()
     {
         if (session()->get('rider_logged_in')) {
@@ -74,7 +71,8 @@ class Rider extends BaseController
         ];
         
         if (!$this->validate($rules)) {
-            return redirect()->to('/rider/register')->withInput()->with('errors', $this->validator->getErrors());
+            session()->setFlashdata('errors', $this->validator->getErrors());
+            return redirect()->to('/rider/register')->withInput();
         }
         
         $data = [
@@ -96,10 +94,10 @@ class Rider extends BaseController
         session()->setFlashdata('error', 'Registration failed. Please try again.');
         return redirect()->to('/rider/register');
     }
-    // ============================================
-    // END OF REGISTER METHODS
-    // ============================================
     
+    // ============================================
+    // DASHBOARD - MAIN PAGE (Overview)
+    // ============================================
     public function dashboard()
     {
         if (!session()->get('rider_logged_in')) {
@@ -108,73 +106,153 @@ class Rider extends BaseController
         
         $db = \Config\Database::connect();
         
-        $readyOrders = $db->table('orders')
-                          ->select('orders.*')
-                          ->where('orders.delivery_status', 'ready')
-                          ->where('orders.order_type', 'online')
-                          ->orderBy('orders.order_date', 'ASC')
-                          ->get()
-                          ->getResultArray();
+        // Get counts for stats
+        $readyCount = $db->table('orders')
+                          ->where('delivery_status', 'ready')
+                          ->where('order_type', 'online')
+                          ->countAllResults();
         
-        $myDeliveries = $db->table('orders')
-                           ->select('orders.*')
-                           ->where('orders.rider_id', session()->get('rider_id'))
-                           ->where('orders.delivery_status', 'assigned')
-                           ->orderBy('orders.order_date', 'ASC')
-                           ->get()
-                           ->getResultArray();
+        $assignedCount = $db->table('orders')
+                             ->where('rider_id', session()->get('rider_id'))
+                             ->where('delivery_status', 'assigned')
+                             ->countAllResults();
         
-        $completedDeliveries = $db->table('orders')
-                                  ->select('orders.*')
-                                  ->where('orders.rider_id', session()->get('rider_id'))
-                                  ->where('orders.delivery_status', 'delivered')
-                                  ->orderBy('orders.delivered_at', 'DESC')
-                                  ->limit(50)
-                                  ->get()
-                                  ->getResultArray();
-        
-        foreach($readyOrders as &$order) {
-            $items = $db->table('order_items')
-                        ->select('order_items.*, products.name as product_name')
-                        ->join('products', 'products.id = order_items.product_id')
-                        ->where('order_items.order_id', $order['id'])
-                        ->get()
-                        ->getResultArray();
-            $order['items'] = $items;
-        }
-        
-        foreach($myDeliveries as &$order) {
-            $items = $db->table('order_items')
-                        ->select('order_items.*, products.name as product_name')
-                        ->join('products', 'products.id = order_items.product_id')
-                        ->where('order_items.order_id', $order['id'])
-                        ->get()
-                        ->getResultArray();
-            $order['items'] = $items;
-        }
-        
-        foreach($completedDeliveries as &$order) {
-            $items = $db->table('order_items')
-                        ->select('order_items.*, products.name as product_name')
-                        ->join('products', 'products.id = order_items.product_id')
-                        ->where('order_items.order_id', $order['id'])
-                        ->get()
-                        ->getResultArray();
-            $order['items'] = $items;
-        }
+        $completedCount = $db->table('orders')
+                              ->where('rider_id', session()->get('rider_id'))
+                              ->where('delivery_status', 'delivered')
+                              ->countAllResults();
         
         $data = [
-            'readyOrders' => $readyOrders,
-            'myDeliveries' => $myDeliveries,
-            'completedDeliveries' => $completedDeliveries
+            'readyCount' => $readyCount,
+            'assignedCount' => $assignedCount,
+            'completedCount' => $completedCount
         ];
         
         return view('rider/template', [
             'title' => 'Rider Dashboard',
-            'content' => view('rider/dashboard', $data)
+            'active_menu' => 'dashboard',
+            'content' => view('rider/dashboard_overview', $data)
         ]);
     }
     
+    // ============================================
+    // READY ORDERS PAGE
+    // ============================================
+    public function readyOrders()
+    {
+        if (!session()->get('rider_logged_in')) {
+            return redirect()->to('/rider/login');
+        }
+        
+        $db = \Config\Database::connect();
+        
+        $orders = $db->table('orders')
+                     ->select('orders.*')
+                     ->where('orders.delivery_status', 'ready')
+                     ->where('orders.order_type', 'online')
+                     ->orderBy('orders.order_date', 'ASC')
+                     ->get()
+                     ->getResultArray();
+        
+        foreach($orders as &$order) {
+            $items = $db->table('order_items')
+                        ->select('order_items.*, products.name as product_name')
+                        ->join('products', 'products.id = order_items.product_id')
+                        ->where('order_items.order_id', $order['id'])
+                        ->get()
+                        ->getResultArray();
+            $order['items'] = $items;
+        }
+        
+        $data = ['orders' => $orders];
+        
+        return view('rider/template', [
+            'title' => 'Ready for Pickup',
+            'active_menu' => 'ready',
+            'content' => view('rider/ready_orders', $data)
+        ]);
+    }
+    
+    // ============================================
+    // ASSIGNED ORDERS PAGE (My Deliveries)
+    // ============================================
+    public function assignedOrders()
+    {
+        if (!session()->get('rider_logged_in')) {
+            return redirect()->to('/rider/login');
+        }
+        
+        $db = \Config\Database::connect();
+        
+        $orders = $db->table('orders')
+                     ->select('orders.*')
+                     ->where('orders.rider_id', session()->get('rider_id'))
+                     ->where('orders.delivery_status', 'assigned')
+                     ->orderBy('orders.order_date', 'ASC')
+                     ->get()
+                     ->getResultArray();
+        
+        foreach($orders as &$order) {
+            $items = $db->table('order_items')
+                        ->select('order_items.*, products.name as product_name')
+                        ->join('products', 'products.id = order_items.product_id')
+                        ->where('order_items.order_id', $order['id'])
+                        ->get()
+                        ->getResultArray();
+            $order['items'] = $items;
+        }
+        
+        $data = ['orders' => $orders];
+        
+        return view('rider/template', [
+            'title' => 'My Deliveries',
+            'active_menu' => 'assigned',
+            'content' => view('rider/assigned_orders', $data)
+        ]);
+    }
+    
+    // ============================================
+    // COMPLETED ORDERS PAGE
+    // ============================================
+    public function completedOrders()
+    {
+        if (!session()->get('rider_logged_in')) {
+            return redirect()->to('/rider/login');
+        }
+        
+        $db = \Config\Database::connect();
+        
+        $orders = $db->table('orders')
+                     ->select('orders.*')
+                     ->where('orders.rider_id', session()->get('rider_id'))
+                     ->where('orders.delivery_status', 'delivered')
+                     ->orderBy('orders.delivered_at', 'DESC')
+                     ->limit(50)
+                     ->get()
+                     ->getResultArray();
+        
+        foreach($orders as &$order) {
+            $items = $db->table('order_items')
+                        ->select('order_items.*, products.name as product_name')
+                        ->join('products', 'products.id = order_items.product_id')
+                        ->where('order_items.order_id', $order['id'])
+                        ->get()
+                        ->getResultArray();
+            $order['items'] = $items;
+        }
+        
+        $data = ['orders' => $orders];
+        
+        return view('rider/template', [
+            'title' => 'Completed Deliveries',
+            'active_menu' => 'completed',
+            'content' => view('rider/completed_orders', $data)
+        ]);
+    }
+    
+    // ============================================
+    // ACCEPT ORDER
+    // ============================================
     public function acceptOrder($order_id)
     {
         if (!session()->get('rider_logged_in')) {
@@ -188,32 +266,39 @@ class Rider extends BaseController
         
         if (!$order) {
             session()->setFlashdata('error', 'Order not found');
-            return redirect()->to('/rider/dashboard');
+            return redirect()->to('/rider/ready');
         }
         
         if ($order['delivery_status'] != 'ready') {
             session()->setFlashdata('error', 'Order is no longer available');
-            return redirect()->to('/rider/dashboard');
+            return redirect()->to('/rider/ready');
         }
         
+        $riderId = session()->get('rider_id');
+        $rider = $db->table('riders')->where('id', $riderId)->get()->getRowArray();
+        
         $updateData = [
-            'rider_id' => session()->get('rider_id'),
+            'rider_id' => $riderId,
             'rider_name' => session()->get('rider_name'),
+            'rider_phone' => $rider['phone'] ?? 'N/A',
             'delivery_status' => 'assigned',
             'confirmed_by_rider_at' => date('Y-m-d H:i:s'),
             'estimated_delivery_time' => date('Y-m-d H:i:s', strtotime('+30 minutes'))
         ];
         
         if ($orderModel->update($order_id, $updateData)) {
-            $db->table('riders')->where('id', session()->get('rider_id'))->update(['status' => 'busy']);
+            $db->table('riders')->where('id', $riderId)->update(['status' => 'busy']);
             session()->setFlashdata('success', 'Order accepted! Please deliver within 30 minutes.');
         } else {
             session()->setFlashdata('error', 'Failed to accept order');
         }
         
-        return redirect()->to('/rider/dashboard');
+        return redirect()->to('/rider/assigned');
     }
     
+    // ============================================
+    // DELIVER ORDER PAGE (Form)
+    // ============================================
     public function deliverOrder($order_id)
     {
         if (!session()->get('rider_logged_in')) {
@@ -229,7 +314,7 @@ class Rider extends BaseController
         
         if (!$order || $order['rider_id'] != session()->get('rider_id')) {
             session()->setFlashdata('error', 'Order not found');
-            return redirect()->to('/rider/dashboard');
+            return redirect()->to('/rider/assigned');
         }
         
         $items = $db->table('order_items')
@@ -246,10 +331,14 @@ class Rider extends BaseController
         
         return view('rider/template', [
             'title' => 'Confirm Delivery',
+            'active_menu' => 'assigned',
             'content' => view('rider/delivery_form', $data)
         ]);
     }
     
+    // ============================================
+    // PROCESS DELIVERY (Form Submission)
+    // ============================================
     public function processDelivery()
     {
         if (!session()->get('rider_logged_in')) {
@@ -297,6 +386,9 @@ class Rider extends BaseController
         return $this->response->setJSON(['success' => false, 'message' => 'Failed to confirm delivery']);
     }
     
+    // ============================================
+    // VIEW ORDER DETAILS
+    // ============================================
     public function viewOrder($order_id)
     {
         if (!session()->get('rider_logged_in')) {
@@ -329,6 +421,7 @@ class Rider extends BaseController
         
         return view('rider/template', [
             'title' => 'Order Details',
+            'active_menu' => '',
             'content' => view('rider/order_detail', $data)
         ]);
     }

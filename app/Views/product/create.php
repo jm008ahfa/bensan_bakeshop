@@ -19,12 +19,14 @@
             color: #1a1a2e;
         }
 
-        .container {
-            max-width: 800px;
+        /* Form Container */
+        .form-container {
+            max-width: 700px;
             margin: 40px auto;
-            padding: 0 24px;
+            padding: 0 20px;
         }
 
+        /* Card Style */
         .card {
             background: white;
             border-radius: 24px;
@@ -35,12 +37,14 @@
         .card-header {
             padding: 24px 32px;
             border-bottom: 1px solid #eef2f7;
+            background: white;
         }
 
         .card-header h2 {
             font-size: 1.5rem;
             font-weight: 600;
             margin: 0;
+            color: #1a1a2e;
         }
 
         .card-header p {
@@ -53,6 +57,7 @@
             padding: 32px;
         }
 
+        /* Form Styles */
         .form-group {
             margin-bottom: 24px;
         }
@@ -67,8 +72,8 @@
 
         .form-group label i {
             color: #ff6b35;
-            margin-right: 6px;
-            width: 18px;
+            margin-right: 8px;
+            width: 20px;
         }
 
         .form-control {
@@ -91,44 +96,58 @@
 
         select.form-control {
             cursor: pointer;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%236c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+            background-repeat: no-repeat;
+            background-position: right 16px center;
         }
 
-        .file-input-wrapper {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .file-input-wrapper input[type="file"] {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-
-        .file-input-custom {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            background: #fafbfc;
+        /* File Upload */
+        .file-upload {
             border: 1.5px dashed #e9ecef;
             border-radius: 12px;
+            padding: 20px;
+            text-align: center;
             cursor: pointer;
             transition: all 0.2s;
+            background: #fafbfc;
         }
 
-        .file-input-custom:hover {
+        .file-upload:hover {
             border-color: #ff6b35;
             background: #fff5f0;
         }
 
-        .file-input-custom span {
-            color: #6c757d;
-            font-size: 0.85rem;
+        .file-upload i {
+            font-size: 40px;
+            color: #adb5bd;
+            margin-bottom: 10px;
         }
 
+        .file-upload p {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .file-upload small {
+            font-size: 0.7rem;
+            color: #adb5bd;
+        }
+
+        #imagePreview {
+            display: none;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .preview-img {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 12px;
+            border: 1px solid #eef2f7;
+        }
+
+        /* Buttons */
         .btn-group {
             display: flex;
             gap: 12px;
@@ -169,24 +188,41 @@
             background: #dee2e6;
         }
 
-        .image-preview {
-            margin-top: 12px;
-            text-align: center;
-            padding: 20px;
-            background: #fafbfc;
-            border-radius: 16px;
-            border: 1px dashed #e9ecef;
-            display: none;
-        }
-
-        .preview-img {
-            max-width: 150px;
-            max-height: 150px;
+        /* Alert Messages */
+        .alert {
+            padding: 14px 18px;
             border-radius: 12px;
-            object-fit: cover;
+            margin-bottom: 24px;
+            font-size: 0.85rem;
         }
 
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .alert-danger {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .alert i {
+            margin-right: 8px;
+        }
+
+        /* Responsive */
         @media (max-width: 640px) {
+            .form-container {
+                margin: 20px auto;
+            }
+            .card-header {
+                padding: 20px;
+            }
+            .card-body {
+                padding: 20px;
+            }
             .btn-group {
                 flex-direction: column;
             }
@@ -197,98 +233,105 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <div class="card-header">
-                <h2><i class="fas fa-plus-circle" style="color: #28a745; margin-right: 8px;"></i> Add New Product</h2>
-                <p>Create a new product for your bakeshop</p>
-            </div>
-            <div class="card-body">
-                <form action="<?= base_url('/product/store') ?>" method="post" enctype="multipart/form-data">
-                    <!-- Product Image -->
-                    <div class="form-group">
-                        <label><i class="fas fa-image"></i> Product Image</label>
-                        <div class="file-input-wrapper">
-                            <div class="file-input-custom" onclick="document.getElementById('imageInput').click()">
-                                <span><i class="fas fa-cloud-upload-alt"></i> Choose product image</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </div>
-                            <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;" onchange="previewImage(this)">
-                        </div>
-                        <div class="image-preview" id="imagePreview">
-                            <img id="previewImg" class="preview-img" alt="Preview">
-                        </div>
-                        <small style="font-size: 0.7rem; color: #6c757d; margin-top: 6px; display: block;">
-                            <i class="fas fa-info-circle"></i> Supported formats: JPG, PNG, GIF (Max: 2MB)
-                        </small>
-                    </div>
 
-                    <!-- Category -->
-                    <div class="form-group">
-                        <label><i class="fas fa-tags"></i> Category</label>
-                        <select name="category_id" class="form-control">
-                            <option value="">-- Select Category --</option>
-                            <?php if(isset($categories) && !empty($categories)): ?>
-                                <?php foreach($categories as $cat): ?>
-                                    <option value="<?= $cat['id'] ?>"><?= $cat['name'] ?></option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </select>
-                    </div>
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-plus-circle" style="color: #28a745;"></i> Add New Product</h2>
+            <p>Create a new product for your bakeshop</p>
+        </div>
+        <div class="card-body">
+            
+            <?php if(session()->getFlashdata('error')): ?>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> <?= session()->getFlashdata('error') ?>
+                </div>
+            <?php endif; ?>
 
-                    <!-- Product Name -->
-                    <div class="form-group">
-                        <label><i class="fas fa-box"></i> Product Name</label>
-                        <input type="text" name="name" class="form-control" required placeholder="Enter product name">
-                    </div>
+            <?php if(session()->getFlashdata('success')): ?>
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> <?= session()->getFlashdata('success') ?>
+                </div>
+            <?php endif; ?>
 
-                    <!-- Price -->
-                    <div class="form-group">
-                        <label><i class="fas fa-tag"></i> Price (₱)</label>
-                        <input type="number" step="0.01" name="price" class="form-control" required placeholder="0.00">
+            <form action="<?= base_url('/product/store') ?>" method="post" enctype="multipart/form-data">
+                
+                <!-- Product Image Upload -->
+                <div class="form-group">
+                    <label><i class="fas fa-image"></i> Product Image</label>
+                    <div class="file-upload" onclick="document.getElementById('imageInput').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload product image</p>
+                        <small>JPG, PNG, GIF (Max: 2MB)</small>
                     </div>
+                    <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                    <div id="imagePreview">
+                        <img id="previewImg" class="preview-img" alt="Preview">
+                    </div>
+                </div>
 
-                    <!-- Stock -->
-                    <div class="form-group">
-                        <label><i class="fas fa-warehouse"></i> Stock Quantity</label>
-                        <input type="number" name="stock" class="form-control" required placeholder="0">
-                    </div>
+                <!-- Category -->
+                <div class="form-group">
+                    <label><i class="fas fa-tags"></i> Category</label>
+                    <select name="category_id" class="form-control">
+                        <option value="">-- Select Category --</option>
+                        <?php if(isset($categories) && !empty($categories)): ?>
+                            <?php foreach($categories as $cat): ?>
+                                <option value="<?= $cat['id'] ?>"><?= $cat['name'] ?></option>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <option value="">No categories available</option>
+                        <?php endif; ?>
+                    </select>
+                </div>
 
-                    <!-- Buttons -->
-                    <div class="btn-group">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Save Product
-                        </button>
-                        <a href="<?= base_url('/products') ?>" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancel
-                        </a>
-                    </div>
-                </form>
-            </div>
+                <!-- Product Name -->
+                <div class="form-group">
+                    <label><i class="fas fa-box"></i> Product Name</label>
+                    <input type="text" name="name" class="form-control" required placeholder="Enter product name">
+                </div>
+
+                <!-- Price -->
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> Price (₱)</label>
+                    <input type="number" step="0.01" name="price" class="form-control" required placeholder="0.00">
+                </div>
+
+                <!-- Stock Quantity -->
+                <div class="form-group">
+                    <label><i class="fas fa-warehouse"></i> Stock Quantity</label>
+                    <input type="number" name="stock" class="form-control" required placeholder="0">
+                </div>
+
+                <!-- Buttons -->
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Product
+                    </button>
+                    <a href="<?= base_url('/products') ?>" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <script>
-        function previewImage(input) {
-            const previewDiv = document.getElementById('imagePreview');
-            const previewImg = document.getElementById('previewImg');
-            
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImg.src = e.target.result;
-                    previewDiv.style.display = 'block';
-                }
-                reader.readAsDataURL(input.files[0]);
-                
-                // Update button text
-                const fileName = input.files[0].name;
-                const customSpan = document.querySelector('.file-input-custom span');
-                if (customSpan) {
-                    customSpan.innerHTML = `<i class="fas fa-check-circle"></i> ${fileName}`;
-                }
-            }
+<script>
+function previewImage(input) {
+    const previewDiv = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewDiv.style.display = 'block';
         }
-    </script>
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+
 </body>
 </html>

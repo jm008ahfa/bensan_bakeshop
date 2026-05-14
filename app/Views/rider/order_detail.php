@@ -1,31 +1,28 @@
-<div class="container" style="max-width: 800px; margin: 0 auto;">
+<div style="max-width: 800px; margin: 0 auto;">
     <div class="card">
         <div class="card-header" style="background: #ff6b35; color: white;">
             <h4><i class="fas fa-receipt"></i> Order Details</h4>
         </div>
         <div class="card-body">
             
-            <!-- Order Information -->
             <div style="margin-bottom: 20px;">
                 <h5>Order Information</h5>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr><td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><strong>Order Number</strong></td><td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><?= $order['order_number'] ?></td></tr>
-                    <tr><td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><strong>Order Date</strong></td><td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><?= date('F d, Y h:i A', strtotime($order['order_date'])) ?></td></tr>
-                    <tr><td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><strong>Status</strong></td><td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><?= ucfirst($order['status']) ?></td></tr>
+                <table style="width: 100%;">
+                    <tr><td style="padding: 8px;"><strong>Order Number</strong></td><td><?= $order['order_number'] ?></td></tr>
+                    <tr><td style="padding: 8px;"><strong>Order Date</strong></td><td><?= date('F d, Y h:i A', strtotime($order['order_date'])) ?></td></tr>
+                    <tr><td style="padding: 8px;"><strong>Status</strong></td><td><?= ucfirst($order['status']) ?></td></tr>
                 </table>
             </div>
             
-            <!-- Customer Information - Name, Phone, Address Only -->
             <div style="margin-bottom: 20px;">
                 <h5>Customer Information</h5>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr><td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><strong>Name</strong></td><td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><?= $order['customer_name'] ?></td></tr>
-                    <tr><td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><strong>Phone</strong></td><td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><?= $order['customer_phone'] ?? 'N/A' ?></td></tr>
-                    <tr><td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><strong>Delivery Address</strong></td><td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><?= $order['delivery_address'] ?? 'No address' ?></td></tr>
+                <table style="width: 100%;">
+                    <tr><td style="padding: 8px;"><strong>Name</strong></td><td><?= $order['customer_name'] ?></td></tr>
+                    <tr><td style="padding: 8px;"><strong>Phone</strong></td><td><?= $order['customer_phone'] ?? 'N/A' ?></td></tr>
+                    <tr><td style="padding: 8px;"><strong>Address</strong></td><td><?= $order['delivery_address'] ?? 'No address' ?></td></tr>
                 </table>
             </div>
             
-            <!-- Order Items -->
             <div style="margin-bottom: 20px;">
                 <h5>Order Items</h5>
                 <table style="width: 100%; border-collapse: collapse;">
@@ -40,10 +37,10 @@
                     <tbody>
                         <?php foreach($items as $item): ?>
                         <tr>
-                            <td style="padding: 8px; border-bottom: 1px solid #eef2f7;"><?= $item['product_name'] ?></td>
-                            <td style="padding: 8px; border-bottom: 1px solid #eef2f7; text-align: center;"><?= $item['quantity'] ?></td>
-                            <td style="padding: 8px; border-bottom: 1px solid #eef2f7; text-align: right;">₱<?= number_format($item['price'], 2) ?></td>
-                            <td style="padding: 8px; border-bottom: 1px solid #eef2f7; text-align: right;">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></td>
+                            <td style="padding: 8px;"><?= $item['product_name'] ?></td>
+                            <td style="padding: 8px; text-align: center;"><?= $item['quantity'] ?></td>
+                            <td style="padding: 8px; text-align: right;">₱<?= number_format($item['price'], 2) ?></td>
+                            <td style="padding: 8px; text-align: right;">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -57,12 +54,7 @@
             </div>
             
             <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <a href="<?= base_url('/rider/dashboard') ?>" class="btn btn-secondary" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 8px;">Back to Dashboard</a>
-                <?php if($order['delivery_status'] == 'ready'): ?>
-                <a href="<?= base_url('/rider/acceptOrder/'.$order['id']) ?>" class="btn btn-success" style="padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 8px;">Accept Delivery</a>
-                <?php elseif($order['delivery_status'] == 'assigned' && $order['rider_id'] == session()->get('rider_id')): ?>
-                <a href="<?= base_url('/rider/confirmDelivery/'.$order['id']) ?>" class="btn btn-primary" style="padding: 10px 20px; background: #ff6b35; color: white; text-decoration: none; border-radius: 8px;">Confirm Delivery</a>
-                <?php endif; ?>
+                <a href="<?= base_url('/rider/assigned') ?>" class="btn btn-view" style="background: #6c757d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px;">Back</a>
             </div>
         </div>
     </div>

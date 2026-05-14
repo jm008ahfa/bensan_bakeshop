@@ -1,159 +1,74 @@
-<div class="pos-container">
-    <!-- Products Panel -->
-    <div class="products-panel">
-        <div class="products-header">
-            <h2><i class="fas fa-box"></i> Products</h2>
-            <p>Click on any product to add to cart</p>
-        </div>
-        <div class="products-grid">
-            <?php if(isset($products) && !empty($products)): ?>
-                <?php 
-                // Remove duplicates by ID
-                $uniqueProducts = [];
-                foreach($products as $p) {
-                    if (!isset($uniqueProducts[$p['id']])) {
-                        $uniqueProducts[$p['id']] = $p;
-                    }
-                }
-                ?>
-                <?php foreach($uniqueProducts as $p): ?>
-                <div class="product-item <?= $p['stock'] <= 0 ? 'out-of-stock' : '' ?>" 
-                     data-id="<?= $p['id'] ?>"
-                     data-name="<?= htmlspecialchars($p['name']) ?>"
-                     data-price="<?= $p['price'] ?>"
-                     data-stock="<?= $p['stock'] ?>"
-                     onclick="addToCart(this)">
-                    
-                    <img src="<?= isset($p['image_url']) && $p['image_url'] ? $p['image_url'] : base_url('assets/images/default-product.png') ?>" 
-                         class="product-img" alt="<?= $p['name'] ?>">
-                    <div class="product-name"><?= htmlspecialchars($p['name']) ?></div>
-                    <div class="product-price">₱<?= number_format($p['price'], 2) ?></div>
-                    <div class="product-stock">Stock: <?= $p['stock'] ?></div>
-                </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div style="grid-column: 1/-1; text-align: center; padding: 40px;">No products found. Please add products first.</div>
-            <?php endif; ?>
-        </div>
-    </div>
-    
-    <!-- Cart Panel -->
-    <div class="cart-panel">
-        <div class="cart-header">
-            <h2><i class="fas fa-shopping-cart"></i> Current Order</h2>
-        </div>
-        
-        <div class="customer-form">
-            <label>Customer Name</label>
-            <input type="text" id="customerName" placeholder="Enter customer name" value="Walk-in Customer">
-            <label>Order Type</label>
-            <select id="orderType">
-                <option value="walk_in">🏪 Walk-in Customer</option>
-            </select>
-        </div>
-        
-        <div class="cart-items" id="cartItems">
-            <div class="cart-empty">
-                <i class="fas fa-shopping-cart"></i>
-                <p>Cart is empty</p>
-                <small>Click on products to add</small>
-            </div>
-        </div>
-        
-        <div class="cart-footer">
-            <div class="cart-total">
-                <span>Total:</span>
-                <span id="cartTotal">₱0.00</span>
-            </div>
-            <div class="cart-buttons">
-                <button class="btn-complete" onclick="completeSale()">Complete Sale</button>
-                <button class="btn-clear" onclick="clearCart()">Clear Cart</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Receipt Modal -->
-<div id="receiptModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <i class="fas fa-receipt" style="font-size: 2rem;"></i>
-            <h3>Bensan Bakeshop</h3>
-            <p>Order Receipt</p>
-        </div>
-        <div class="modal-body" id="receiptBody"></div>
-        <div class="modal-footer">
-            <button class="btn-print" onclick="printReceipt()">🖨️ Print</button>
-            <button class="btn-close-modal" onclick="closeReceipt()">Close</button>
-        </div>
-    </div>
-</div>
-
-<div id="toast" class="toast"></div>
-
 <style>
     .pos-container {
         display: flex;
         gap: 24px;
-        min-height: calc(100vh - 150px);
+        height: calc(100vh - 140px);
     }
     
+    /* Products Panel */
     .products-panel {
         flex: 2;
         background: white;
         border-radius: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #eef2f7;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
     }
     
     .products-header {
-        padding: 20px 24px;
+        padding: 16px 20px;
         border-bottom: 1px solid #eef2f7;
+        background: white;
     }
     
-    .products-header h2 {
-        font-size: 1.2rem;
+    .products-header h3 {
+        font-size: 1rem;
         font-weight: 600;
         margin: 0;
     }
     
     .products-header p {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: #6c757d;
         margin-top: 4px;
     }
     
     .products-grid {
-        padding: 20px 24px;
+        padding: 16px 20px;
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 16px;
         overflow-y: auto;
-        max-height: calc(100vh - 200px);
+        flex: 1;
     }
     
-    .product-item {
+    .product-card {
         background: #f8f9fa;
-        border-radius: 16px;
-        padding: 16px;
+        border-radius: 14px;
+        padding: 14px;
         text-align: center;
         cursor: pointer;
         transition: all 0.2s;
         border: 2px solid transparent;
     }
     
-    .product-item:hover {
+    .product-card:hover {
         transform: translateY(-3px);
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         border-color: #ff6b35;
         background: white;
     }
     
-    .product-item.out-of-stock {
+    .product-card.out-of-stock {
         opacity: 0.5;
         cursor: not-allowed;
+    }
+    
+    .product-card.out-of-stock:hover {
+        transform: none;
+        border-color: transparent;
     }
     
     .product-img {
@@ -161,7 +76,8 @@
         height: 80px;
         object-fit: cover;
         border-radius: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
+        background: #e9ecef;
     }
     
     .product-name {
@@ -183,63 +99,63 @@
         margin-top: 4px;
     }
     
+    /* Cart Panel */
     .cart-panel {
-        flex: 1;
+        flex: 1.2;
         background: white;
         border-radius: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #eef2f7;
         display: flex;
         flex-direction: column;
         overflow: hidden;
     }
     
     .cart-header {
-        padding: 20px 24px;
+        padding: 16px 20px;
         border-bottom: 1px solid #eef2f7;
     }
     
-    .cart-header h2 {
-        font-size: 1.2rem;
+    .cart-header h3 {
+        font-size: 1rem;
         font-weight: 600;
         margin: 0;
     }
     
-    .customer-form {
-        padding: 20px 24px;
+    .customer-info {
+        padding: 16px 20px;
         background: #f8f9fa;
         border-bottom: 1px solid #eef2f7;
     }
     
-    .customer-form label {
+    .customer-info label {
         display: block;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
-        margin-bottom: 6px;
+        margin-bottom: 5px;
         color: #1a1a2e;
     }
     
-    .customer-form input,
-    .customer-form select {
+    .customer-info input,
+    .customer-info select {
         width: 100%;
-        padding: 10px 12px;
+        padding: 8px 12px;
         border: 1px solid #e9ecef;
         border-radius: 10px;
-        font-family: 'Inter', sans-serif;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         margin-bottom: 12px;
     }
     
     .cart-items {
         flex: 1;
         overflow-y: auto;
-        padding: 16px 24px;
-        min-height: 200px;
+        padding: 16px 20px;
     }
     
     .cart-empty {
         text-align: center;
         color: #adb5bd;
-        padding: 40px 20px;
+        padding: 50px 20px;
     }
     
     .cart-empty i {
@@ -283,19 +199,20 @@
     }
     
     .cart-item-qty button {
-        width: 26px;
-        height: 26px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         border: 1px solid #e9ecef;
         background: white;
         cursor: pointer;
         font-weight: bold;
+        font-size: 12px;
     }
     
     .cart-item-qty span {
-        min-width: 24px;
+        min-width: 20px;
         text-align: center;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
     }
     
     .cart-item-total {
@@ -310,10 +227,11 @@
         color: #dc3545;
         cursor: pointer;
         margin-left: 8px;
+        font-size: 14px;
     }
     
     .cart-footer {
-        padding: 20px 24px;
+        padding: 16px 20px;
         border-top: 1px solid #eef2f7;
     }
     
@@ -321,7 +239,7 @@
         display: flex;
         justify-content: space-between;
         font-weight: 700;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         margin-bottom: 16px;
     }
     
@@ -343,6 +261,7 @@
         border-radius: 10px;
         font-weight: 600;
         cursor: pointer;
+        font-size: 0.85rem;
     }
     
     .btn-clear {
@@ -354,8 +273,10 @@
         border-radius: 10px;
         font-weight: 600;
         cursor: pointer;
+        font-size: 0.85rem;
     }
     
+    /* Receipt Modal */
     .modal {
         display: none;
         position: fixed;
@@ -371,7 +292,7 @@
     
     .modal-content {
         background: white;
-        width: 400px;
+        width: 380px;
         max-width: 90%;
         border-radius: 20px;
         overflow: hidden;
@@ -380,8 +301,13 @@
     .modal-header {
         background: #1a1a2e;
         color: white;
-        padding: 20px;
+        padding: 16px 20px;
         text-align: center;
+    }
+    
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
     }
     
     .modal-body {
@@ -389,7 +315,7 @@
     }
     
     .modal-footer {
-        padding: 15px 20px;
+        padding: 12px 20px;
         border-top: 1px solid #eef2f7;
         display: flex;
         gap: 10px;
@@ -419,19 +345,108 @@
         position: fixed;
         bottom: 24px;
         right: 24px;
-        padding: 12px 20px;
+        padding: 10px 20px;
         border-radius: 10px;
         color: white;
         z-index: 2100;
         display: none;
+        font-size: 0.85rem;
     }
     
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
         .pos-container {
             flex-direction: column;
+            height: auto;
+        }
+        .products-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
         }
     }
 </style>
+
+<div class="pos-container">
+    <!-- Products Panel -->
+    <div class="products-panel">
+        <div class="products-header">
+            <h3><i class="fas fa-box"></i> Products</h3>
+            <p>Click on any product to add to cart</p>
+        </div>
+        <div class="products-grid" id="productsGrid">
+            <?php if(isset($products) && !empty($products)): ?>
+                <?php foreach($products as $p): ?>
+                <div class="product-card <?= $p['stock'] <= 0 ? 'out-of-stock' : '' ?>" 
+                     data-id="<?= $p['id'] ?>"
+                     data-name="<?= htmlspecialchars($p['name']) ?>"
+                     data-price="<?= $p['price'] ?>"
+                     data-stock="<?= $p['stock'] ?>"
+                     onclick="addToCart(this)">
+                    
+                    <img src="<?= isset($p['image_url']) && $p['image_url'] ? $p['image_url'] : base_url('assets/images/default-product.png') ?>" 
+                         class="product-img" alt="<?= $p['name'] ?>">
+                    <div class="product-name"><?= htmlspecialchars($p['name']) ?></div>
+                    <div class="product-price">₱<?= number_format($p['price'], 2) ?></div>
+                    <div class="product-stock">Stock: <?= $p['stock'] ?></div>
+                </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px;">No products found. Please add products first.</div>
+            <?php endif; ?>
+        </div>
+    </div>
+    
+    <!-- Cart Panel -->
+    <div class="cart-panel">
+        <div class="cart-header">
+            <h3><i class="fas fa-shopping-cart"></i> Current Order</h3>
+        </div>
+        
+        <div class="customer-info">
+            <label>Customer Name</label>
+            <input type="text" id="customerName" placeholder="Enter customer name" value="Walk-in Customer">
+            <label>Order Type</label>
+            <select id="orderType">
+                <option value="walk_in">🏪 Walk-in Customer</option>
+            </select>
+        </div>
+        
+        <div class="cart-items" id="cartItems">
+            <div class="cart-empty">
+                <i class="fas fa-shopping-cart"></i>
+                <p>Cart is empty</p>
+                <small>Click on products to add</small>
+            </div>
+        </div>
+        
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">₱0.00</span>
+            </div>
+            <div class="cart-buttons">
+                <button class="btn-complete" onclick="completeSale()">✓ Complete Sale</button>
+                <button class="btn-clear" onclick="clearCart()">✗ Clear Cart</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div id="receiptModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <i class="fas fa-receipt" style="font-size: 1.5rem;"></i>
+            <h3>Bensan Bakeshop</h3>
+            <p style="font-size: 0.7rem; margin-top: 4px;">Order Receipt</p>
+        </div>
+        <div class="modal-body" id="receiptBody"></div>
+        <div class="modal-footer">
+            <button class="btn-print" onclick="printReceipt()">🖨️ Print</button>
+            <button class="btn-close-modal" onclick="closeReceipt()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
 
 <script>
 let cart = [];
@@ -579,7 +594,7 @@ function completeSale() {
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = 'Complete Sale';
+        btn.innerHTML = '✓ Complete Sale';
     });
 }
 
@@ -593,7 +608,7 @@ function showReceipt(data) {
     });
     
     document.getElementById('receiptBody').innerHTML = `
-        <div style="text-align: center; margin-bottom: 15px;">
+        <div style="text-align: center; margin-bottom: 15px; font-size: 12px;">
             <p><strong>${data.order_number}</strong></p>
             <p>${data.order_date}</p>
             <p>${escapeHtml(data.customer_name)}</p>
@@ -606,7 +621,7 @@ function showReceipt(data) {
             <span>TOTAL</span>
             <span>₱${data.total.toFixed(2)}</span>
         </div>
-        <div style="text-align: center; margin-top: 15px; font-size: 11px; color: #6c757d;">
+        <div style="text-align: center; margin-top: 15px; font-size: 10px; color: #6c757d;">
             Thank you for your purchase!
         </div>
     `;

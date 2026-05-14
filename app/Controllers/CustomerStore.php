@@ -8,6 +8,7 @@ use App\Models\OrderModel;
 
 class CustomerStore extends BaseController
 {
+    // Check login manually
     private function checkLogin()
     {
         if (!session()->get('customer_logged_in')) {
@@ -112,6 +113,41 @@ class CustomerStore extends BaseController
         ]);
     }
     
+    public function category($id)
+    {
+        $redirect = $this->checkLogin();
+        if ($redirect) return $redirect;
+        
+        $productModel = new ProductModel();
+        $categoryModel = new CategoryModel();
+        
+        $category = $categoryModel->find($id);
+        
+        if (!$category) {
+            return redirect()->to('/customer/store');
+        }
+        
+        $products = $productModel->where('category_id', $id)->findAll();
+        
+        foreach($products as &$product) {
+            if(!empty($product['image']) && file_exists('uploads/products/' . $product['image'])) {
+                $product['image_url'] = base_url('uploads/products/' . $product['image']);
+            } else {
+                $product['image_url'] = base_url('assets/images/default-product.png');
+            }
+        }
+        
+        $data = [
+            'products' => $products,
+            'category' => $category
+        ];
+        
+        return view('customer/store_template', [
+            'title' => $category['name'],
+            'content' => view('customer/category_products', $data)
+        ]);
+    }
+    
     public function trackOrder()
     {
         $redirect = $this->checkLogin();
@@ -125,12 +161,36 @@ class CustomerStore extends BaseController
                      ->get()
                      ->getResultArray();
         
+        foreach($orders as &$order) {
+            $items = $db->table('order_items')
+                        ->select('order_items.*, products.name as product_name')
+                        ->join('products', 'products.id = order_items.product_id')
+                        ->where('order_items.order_id', $order['id'])
+                        ->get()
+                        ->getResultArray();
+            $order['items'] = $items;
+            
+            // Get rider info if assigned
+            if(isset($order['rider_id']) && $order['rider_id']) {
+                $rider = $db->table('riders')
+                            ->select('name, phone')
+                            ->where('id', $order['rider_id'])
+                            ->get()
+                            ->getRowArray();
+                if($rider) {
+                    $order['rider_name'] = $rider['name'];
+                    $order['rider_phone'] = $rider['phone'];
+                }
+            }
+        }
+        
         return view('customer/store_template', [
             'title' => 'Track Orders',
             'content' => view('customer/track_order', ['orders' => $orders])
         ]);
     }
     
+    // ONLY ONE viewOrder METHOD - NO DUPLICATE
     public function viewOrder($order_number)
     {
         $redirect = $this->checkLogin();
@@ -156,6 +216,21 @@ class CustomerStore extends BaseController
         
         $order['items'] = $items;
         
+        // Get rider information if assigned
+        if(isset($order['rider_id']) && $order['rider_id']) {
+            $rider = $db->table('riders')
+                        ->select('name, phone, vehicle_type, plate_number')
+                        ->where('id', $order['rider_id'])
+                        ->get()
+                        ->getRowArray();
+            if($rider) {
+                $order['rider_name'] = $rider['name'];
+                $order['rider_phone'] = $rider['phone'];
+                $order['rider_vehicle'] = $rider['vehicle_type'] ?? 'N/A';
+                $order['rider_plate'] = $rider['plate_number'] ?? 'N/A';
+            }
+        }
+        
         return view('customer/store_template', [
             'title' => 'Order Details',
             'content' => view('customer/order_detail', ['order' => $order])
@@ -169,6 +244,7 @@ class CustomerStore extends BaseController
         $customer_email = $this->request->getPost('customer_email');
         $customer_phone = $this->request->getPost('customer_phone');
         $delivery_address = $this->request->getPost('delivery_address');
+        $payment_method = $this->request->getPost('payment_method') ?: 'cod';
         
         if (empty($cart)) {
             return $this->response->setJSON(['success' => false, 'message' => 'Cart is empty']);
@@ -191,7 +267,7 @@ class CustomerStore extends BaseController
             $total_amount += $product['price'] * $item['quantity'];
         }
         
-        $order_number = $orderModel->generateOrderNumber();
+        $order_number = 'ORD-' . date('Ymd') . '-' . rand(100, 999);
         
         $db->transStart();
         
@@ -202,8 +278,12 @@ class CustomerStore extends BaseController
             'customer_phone' => $customer_phone,
             'delivery_address' => $delivery_address,
             'order_type' => 'online',
+            'payment_method' => $payment_method,
+            'payment_status' => 'pending',
             'total' => $total_amount,
-            'status' => 'pending'
+            'status' => 'pending',
+            'delivery_status' => 'pending',
+            'order_date' => date('Y-m-d H:i:s')
         ];
         
         $orderModel->insert($orderData);
