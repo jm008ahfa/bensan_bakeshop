@@ -9,6 +9,11 @@ class Product extends BaseController
 {
     public function index()
     {
+        // Staff cannot access products
+        if (session()->get('role') === 'staff') {
+            return redirect()->to('/pos');
+        }
+        
         $model = new ProductModel();
         $products = $model->findAll();
         
@@ -29,9 +34,14 @@ class Product extends BaseController
         ]);
     }
     
-    // THIS CREATE METHOD MUST EXIST
+    // The create method - handles /product/create and /product/add
     public function create()
     {
+        // Staff cannot access products
+        if (session()->get('role') === 'staff') {
+            return redirect()->to('/pos');
+        }
+        
         $categoryModel = new CategoryModel();
         $data['categories'] = $categoryModel->findAll();
         
@@ -44,6 +54,11 @@ class Product extends BaseController
     
     public function store()
     {
+        // Staff cannot access products
+        if (session()->get('role') === 'staff') {
+            return redirect()->to('/pos');
+        }
+        
         $model = new ProductModel();
         
         $imageName = null;
@@ -77,6 +92,11 @@ class Product extends BaseController
     
     public function edit($id)
     {
+        // Staff cannot access products
+        if (session()->get('role') === 'staff') {
+            return redirect()->to('/pos');
+        }
+        
         $model = new ProductModel();
         $categoryModel = new CategoryModel();
         
@@ -107,6 +127,11 @@ class Product extends BaseController
     
     public function update($id)
     {
+        // Staff cannot access products
+        if (session()->get('role') === 'staff') {
+            return redirect()->to('/pos');
+        }
+        
         $model = new ProductModel();
         $existing = $model->find($id);
         
@@ -145,6 +170,11 @@ class Product extends BaseController
     
     public function delete($id)
     {
+        // Staff cannot access products
+        if (session()->get('role') === 'staff') {
+            return redirect()->to('/pos');
+        }
+        
         $model = new ProductModel();
         $product = $model->find($id);
         
@@ -167,5 +197,32 @@ class Product extends BaseController
         }
         
         return redirect()->to('/products');
+    }
+    
+    public function filterByCategory($category_id)
+    {
+        // Staff cannot access products
+        if (session()->get('role') === 'staff') {
+            return redirect()->to('/pos');
+        }
+        
+        $model = new ProductModel();
+        $products = $model->where('category_id', $category_id)->findAll();
+        
+        foreach($products as &$product) {
+            if(!empty($product['image']) && file_exists('uploads/products/' . $product['image'])) {
+                $product['image_url'] = base_url('uploads/products/' . $product['image']);
+            } else {
+                $product['image_url'] = base_url('assets/images/default-product.png');
+            }
+        }
+        
+        $data = ['products' => $products];
+        
+        return view('template', [
+            'title' => 'Products',
+            'active_menu' => 'products',
+            'content' => view('product/index', $data)
+        ]);
     }
 }

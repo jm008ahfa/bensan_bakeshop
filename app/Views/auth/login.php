@@ -354,7 +354,8 @@
     </form>
 
     <div class="register-link">
-        <p>New admin? <a href="<?= base_url('/register') ?>">Create an account</a></p>
+        
+        
     </div>
 </div>
 

@@ -4,11 +4,10 @@ namespace App\Controllers;
 
 use App\Models\ProductModel;
 use App\Models\CategoryModel;
-use App\Models\OrderModel;
 
-class CustomerStore extends BaseController
+class CustomerDashboard extends BaseController
 {
-    // No login required for browsing
+    // Public - No login required to view
     public function index()
     {
         $productModel = new ProductModel();
@@ -36,7 +35,6 @@ class CustomerStore extends BaseController
         ]);
     }
     
-    // No login required for viewing products
     public function products()
     {
         $productModel = new ProductModel();
@@ -62,14 +60,13 @@ class CustomerStore extends BaseController
         ]);
     }
     
-    // No login required for viewing product details
     public function productDetail($id)
     {
         $productModel = new ProductModel();
         $product = $productModel->find($id);
         
         if(!$product) {
-            return redirect()->to('/customer/store');
+            return redirect()->to('/customer');
         }
         
         if(!empty($product['image']) && file_exists('uploads/products/' . $product['image'])) {
@@ -98,7 +95,6 @@ class CustomerStore extends BaseController
         ]);
     }
     
-    // No login required for viewing products by category
     public function category($id)
     {
         $productModel = new ProductModel();
@@ -107,7 +103,7 @@ class CustomerStore extends BaseController
         $category = $categoryModel->find($id);
         
         if (!$category) {
-            return redirect()->to('/customer/store');
+            return redirect()->to('/customer');
         }
         
         $products = $productModel->where('category_id', $id)->findAll();
@@ -136,9 +132,8 @@ class CustomerStore extends BaseController
     // ============================================
     public function checkout()
     {
-        // Check if customer is logged in
         if (!session()->get('customer_logged_in')) {
-            session()->setFlashdata('error', 'Please login or create an account to proceed with checkout');
+            session()->setFlashdata('error', 'Please login or create an account to continue');
             return redirect()->to('/customer/login');
         }
         
@@ -150,7 +145,6 @@ class CustomerStore extends BaseController
     
     public function placeOrder()
     {
-        // Check if customer is logged in
         if (!session()->get('customer_logged_in')) {
             return $this->response->setJSON(['success' => false, 'message' => 'Please login to place order']);
         }
@@ -233,7 +227,6 @@ class CustomerStore extends BaseController
         ]);
     }
     
-    // Track order - requires login
     public function trackOrder()
     {
         if (!session()->get('customer_logged_in')) {
@@ -320,5 +313,23 @@ class CustomerStore extends BaseController
             'title' => 'Order Details',
             'content' => view('customer/order_detail', ['order' => $order])
         ]);
+    }
+    
+    public function account()
+    {
+        if (!session()->get('customer_logged_in')) {
+            return redirect()->to('/customer/login');
+        }
+        
+        return view('customer/public_template', [
+            'title' => 'My Account',
+            'content' => view('customer/my_account')
+        ]);
+    }
+    
+    public function logout()
+    {
+        session()->destroy();
+        return redirect()->to('/customer');
     }
 }
