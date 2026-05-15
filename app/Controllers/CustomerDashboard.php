@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\ProductModel;
 use App\Models\CategoryModel;
+use App\Models\OrderModel;
 
 class CustomerDashboard extends BaseController
 {
